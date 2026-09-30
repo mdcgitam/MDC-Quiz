@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MDC Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef3fd;--card:#ffffff;--ink:#0b1f5c;--mut:#5f6f96;--acc:#2a4aa5;--acc2:#0b2568;--good:#16a34a;--bad:#dc2626;--line:#dbe5f7;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14204a;--card:#1b2a5e;--ink:#eaf0ff;--mut:#a9b8e0;--acc:#5b7fe0;--line:#2f437f}}
+:root[data-theme="dark"]{--bg:#14204a;--card:#1b2a5e;--ink:#eaf0ff;--mut:#a9b8e0;--acc:#5b7fe0;--line:#2f437f}
+html,body{height:100%}
+body{margin:0;background:linear-gradient(160deg,#dbe8ff,#c3d6f8 60%,#b3caf3);color:var(--ink);font:16px/1.5 Inter,"Segoe UI",system-ui,sans-serif;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:22px;padding:26px;width:100%;max-width:480px;margin-top:4vh;box-shadow:0 10px 30px #0b1f5c1a}
+.wide{max-width:760px}
+h1{margin:0 0 4px;font-size:28px}h2{white-space:pre-wrap;font-size:20px;margin:18px 0}h3{margin:20px 0 6px}
+.sub{color:var(--mut);margin:0 0 16px}
+label{display:block;font-weight:700;font-size:14px;margin:12px 0}
+input,textarea,select{display:block;width:100%;box-sizing:border-box;margin-top:6px;padding:12px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:inherit}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--acc)}
+select{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--mut) 50%),linear-gradient(135deg,var(--mut) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px,6px 6px;background-repeat:no-repeat;padding-right:40px}
+#rc{text-transform:uppercase;letter-spacing:.2em;font-weight:800}
+#rn{text-transform:uppercase}
+.btn{width:100%;margin-top:10px;padding:14px;border:0;border-radius:14px;background:linear-gradient(90deg,var(--acc),var(--acc2));color:#fff;font:800 16px Inter,sans-serif;cursor:pointer}
+.btn:active{transform:scale(.98)}.btn.alt{background:var(--ink);color:var(--card)}
+.lnk{display:inline-block;margin-top:14px;color:var(--acc);font-weight:700;cursor:pointer}
+.msg{color:var(--bad);min-height:1.4em;margin:8px 0 0;font-size:14px}
+.top{display:flex;align-items:center;gap:10px;color:var(--mut);font-weight:700;font-size:14px}
+.top b{margin-left:auto;font-size:20px;color:var(--acc)}
+.pts{background:var(--bg);border-radius:99px;padding:2px 10px}
+.bar{height:8px;background:var(--line);border-radius:9px;margin-top:10px;overflow:hidden}
+.bar i{display:block;height:100%;width:100%;background:var(--acc);border-radius:9px}
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:center;text-align:left;padding:13px 14px;border:2px solid var(--line);border-radius:14px;background:var(--bg);color:var(--ink);font:700 16px Inter,sans-serif;cursor:pointer}
+.opt:hover:not(:disabled){border-color:var(--acc)}
+.opt em{font-style:normal;width:28px;height:28px;flex:none;border-radius:9px;background:var(--line);display:grid;place-items:center;font-size:13px}
+.good{border-color:var(--good);background:#16a34a22}.bad{border-color:var(--bad);background:#dc262622}
+.live{color:var(--mut);text-align:center;margin:16px 0 0;font-size:14px}
+.center{text-align:center}.big{font-size:56px;margin:8px 0}
+.lb{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.lb li{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:12px;background:var(--bg)}
+.lb li.me{outline:2px solid var(--acc)}
+.lb .rk{width:28px;text-align:center;font-weight:800}.lb .nm{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb small{color:var(--mut)}.lb b{min-width:48px;text-align:right}
+.x{border:0;background:none;color:var(--mut);cursor:pointer;font-size:16px}
+.hd{display:flex;justify-content:space-between;align-items:flex-end;gap:10px;flex-wrap:wrap}
+.code{font-size:44px;font-weight:800;letter-spacing:.15em;color:var(--acc)}
+.hd .btn{margin:0;width:auto;padding:12px 20px}
+.tabs{display:flex;gap:8px;margin:6px 0 14px}
+.tab{flex:1;padding:10px;border:2px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);font:800 14px Inter,sans-serif;cursor:pointer}
+.tab.on{background:linear-gradient(90deg,var(--acc),var(--acc2));border-color:var(--acc);color:#fff}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.stats div{background:var(--bg);border-radius:12px;padding:10px;text-align:center;font-size:12px;color:var(--mut)}
+.stats b{display:block;font-size:22px;color:var(--ink)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:940px}
+th{text-align:left;color:var(--mut);font-size:12px;padding:6px 8px;border-bottom:2px solid var(--line)}
+td{padding:9px 8px;border-bottom:1px solid var(--line)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;background:var(--mut)}
+.dot.on{background:var(--good)}.dot.dn{background:var(--acc)}
+
+/* ---- compact join form (desktop, no scroll) ---- */
+.form-grid{display:grid;gap:10px 14px}
+.form-grid label{margin:0}
+.form-grid .full{grid-column:1/-1}
+@media(min-width:640px){
+  body{align-items:center;padding:20px}
+  .form-grid{grid-template-columns:1fr 1fr}
+  .card.compact{margin-top:0;padding:22px 26px;max-width:560px}
+  .card.compact h1{font-size:26px;margin-bottom:2px}
+  .card.compact .sub{margin:0 0 12px;font-size:14px}
+  .card.compact label{font-size:13px}
+  .card.compact input,.card.compact select{padding:9px 12px;margin-top:4px}
+  .card.compact .btn{margin-top:8px;padding:12px}
+  .card.compact .lnk{margin-top:10px}
+  .card.compact .msg{min-height:1.2em;font-size:13px}
+}
+
+/* ---- top participants modal ---- */
+.modal{position:fixed;inset:0;background:rgba(11,31,92,.55);display:flex;align-items:center;justify-content:center;padding:20px;z-index:999;backdrop-filter:blur(3px)}
+.modal-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px 24px;max-width:520px;width:100%;box-shadow:0 25px 60px #0007;animation:pop .18s ease-out}
+@keyframes pop{from{transform:scale(.94);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-card h2{margin:0 0 14px}
+.modal-card .btn{margin-top:16px}
+
+/* ---- histogram ---- */
+.hist{display:flex;flex-direction:column;margin:6px 0 4px}
+.hist-bars{display:flex;align-items:flex-end;gap:10px;padding:26px 4px 0;border-bottom:2px solid var(--line)}
+.hist-col{flex:1;min-width:0;height:180px;display:flex;align-items:flex-end;justify-content:center}
+.hist-bar{width:100%;max-width:64px;border-radius:8px 8px 0 0;background:linear-gradient(180deg,var(--acc),var(--acc2));position:relative;min-height:6px;transition:height .45s cubic-bezier(.4,0,.2,1)}
+.hist-bar.me{background:linear-gradient(180deg,#fbbf24,#d97706);box-shadow:0 0 0 2px #fbbf2455}
+.hist-val{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:12px;font-weight:800;color:var(--ink);white-space:nowrap}
+.hist-names{display:flex;gap:10px;padding:8px 4px 0}
+.hist-names .nm-col{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--mut);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hist-names .nm-col.me{color:var(--acc)}
+</style></head><body><div id="app"></div>
+<script>
+const Q0=[
+["What does time complexity measure?","Amount of memory used|Number of lines in a program|How running time grows with input size|Size of the source code",2,1],
+["What is the time complexity of this code?\nfor(int i = 0; i < n; i++) cout << i;","O(1)|O(log n)|O(n)|O(n²)",2,1],
+["Which notation represents an upper bound on an algorithm's growth?","Ω|Θ|O|Σ",2,1],
+["What is the time complexity of accessing arr[5] in an array?","O(1)|O(n)|O(log n)|O(n²)",0,1],
+["What is the time complexity of binary search on a sorted array?","O(n)|O(log n)|O(n log n)|O(1)",1,1],
+["Which grows faster as n becomes very large?","O(log n)|O(n)|O(n²)|O(1)",2,1],
+["What is the time complexity of this code?\nfor(int i = 0; i < n; i++) for(int j = 0; j < n; j++) cout << i + j;","O(n)|O(log n)|O(n²)|O(2n)",2,1],
+["What is the complexity of the following code?\nfor(int i = 0; i < n; i++) cout << i;\nfor(int j = 0; j < n; j++) cout << j;","O(n²)|O(2n²)|O(n)|O(log n)",2,2],
+["What is the time complexity?\nfor(int i = 1; i < n; i *= 2) cout << i;","O(n)|O(log n)|O(n log n)|O(2ⁿ)",1,2],
+["What is the time complexity?\nfor(int i = 0; i < n; i++) for(int j = i; j < n; j++) cout << i << j;","O(n)|O(log n)|O(n²)|O(n³)",2,2],
+["Which is the correct order from fastest-growing efficiency to slowest-growing efficiency?","O(n²) → O(n) → O(log n) → O(1)|O(1) → O(log n) → O(n) → O(n²)|O(log n) → O(1) → O(n²) → O(n)|O(n) → O(1) → O(log n) → O(n²)",1,2],
+["What is the time complexity of merge sort?","O(n)|O(n²)|O(log n)|O(n log n)",3,2],
+["Consider:\nfor(int i = 0; i < n; i++) { for(int j = 1; j < n; j *= 2) cout << i << j; }\nWhat is the complexity?","O(n)|O(log n)|O(n log n)|O(n²)",2,2],
+["If an algorithm performs 3n² + 5n + 10 operations, what is its Big-O complexity?","O(n)|O(n²)|O(3n²)|O(n³)",1,2],
+["What is the time complexity?\nint i = n;\nwhile(i > 1) { i = i / 2; }","O(n)|O(n²)|O(log n)|O(√n)",2,3],
+["What is the complexity of the following code?\nfor(int i = 1; i <= n; i *= 2) { for(int j = 0; j < n; j++) cout << i + j; }","O(n)|O(log n)|O(n log n)|O(n²)",2,3],
+["What is the time complexity?\nfor(int i = 0; i < n; i++) { int j = i; while(j > 0) { j /= 2; } }","O(n)|O(log n)|O(n log n)|O(n²)",2,3],
+["Which complexity is associated with generating all subsets of a set containing n elements?","O(n)|O(n²)|O(n log n)|O(2ⁿ)",3,3],
+["What is the time complexity?\nfor(int i = 0; i < n; i++) { for(int j = 1; j <= i; j++) { for(int k = 1; k <= j; k++) cout << k; } }","O(n²)|O(n³)|O(n log n)|O(2ⁿ)",1,3],
+["An algorithm has the recurrence T(n) = 2T(n/2) + O(n). What is its time complexity?","O(n)|O(log n)|O(n log n)|O(n²)",2,3]];
+
+/* ---- signup options ---- */
+const YEARS=['1st Year','2nd Year','3rd Year','4th Year'];
+const DEPTS=['CSE-AIML','Core','CS','DS'];
+
+const $=s=>document.querySelector(s), app=$('#app');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ls={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}}};
+const pid=ls.get('mdc_pid')||('p'+Math.random().toString(36).slice(2,10)); ls.set('mdc_pid',pid);
+const tm=t=>t?new Date(t).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit',second:'2-digit'}):'—';
+const SUPA_URL='https://bxaqkcpawnoiuarwlsbn.supabase.co', SUPA_KEY='sb_publishable_wBY9gg1mj5APjvZo9rZAEA_Evnry798';
+function supaDB(){
+  const H={apikey:SUPA_KEY,'Content-Type':'application/json'}, T=SUPA_URL+'/rest/v1/docs';
+  const call=async(q,o={})=>{const r=await fetch(T+q,{...o,headers:{...H,...(o.headers||{})}});
+    if(!r.ok) throw Error('Database error '+r.status); const t=await r.text(); return t?JSON.parse(t):[]};
+  const enc=encodeURIComponent, mk=(p,row)=>({id:p.split('/').pop(),exists:!!row,data:()=>row?row.data:undefined});
+  const poll=(fn,ms=2000)=>{let last,dead=false;const run=async()=>{try{const j=await fn();const k=JSON.stringify(j.k);if(k!==last){last=k;j.emit()}}catch(e){}};run();const t=setInterval(run,ms);return()=>{dead=true;clearInterval(t)}};
+  const one=async p=>(await call('?path=eq.'+enc(p)+'&select=path,data'))[0];
+  const doc=p=>({
+    get:async()=>mk(p,await one(p)),
+    set:async d=>{await call('',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify({path:p,data:d,updated_at:new Date().toISOString()})})},
+    update:async d=>{const r=await one(p);if(!r)throw Error('Not found');await call('?path=eq.'+enc(p),{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({data:{...r.data,...d},updated_at:new Date().toISOString()})})},
+    delete:async()=>{await call('?path=eq.'+enc(p),{method:'DELETE'})},
+    collection:n=>col(p+'/'+n),
+    onSnapshot:f=>poll(async()=>{const r=await one(p);return{k:r,emit:()=>f(mk(p,r))}})
+  });
+  const col=p=>({
+    doc:id=>doc(p+'/'+id),
+    onSnapshot:f=>poll(async()=>{const rows=(await call('?path=like.'+enc(p+'/*')+'&select=path,data')).filter(r=>!r.path.slice(p.length+1).includes('/'));return{k:rows,emit:()=>f({docs:rows.map(r=>mk(r.path,r))})}})
+  });
+  return {doc,collection:col};
+}
+let db,st={},subs=[],tick;
+const rref=c=>db.doc('rooms/'+c), pcol=c=>rref(c).collection('players');
+const show=h=>{app.innerHTML=h}, msg=t=>{const m=$('#msg');if(m)m.textContent=t};
+const unsub=()=>{subs.forEach(f=>f());subs=[];clearInterval(tick)};
+
+(async()=>{
+  show('<main class="card center"><p class="sub">Warming up…</p></main>');
+  db=supaDB(); home();
+})();
+
+function home(){
+  unsub(); st={};
+  const ySel=ls.get('mdc_year'), dSel=ls.get('mdc_dept');
+  show(`<main class="card compact">
+    <h1>MDC Quiz</h1>
+    <p class="sub">Pop in the room code your host shared and fill in your details.</p>
+    <div class="form-grid">
+      <label class="full">Your display name<input id="nm" maxlength="20" placeholder="e.g. Priya" value="${esc(ls.get('mdc_name')||'')}"></label>
+      <label class="full">Mail ID<input id="em" type="email" inputmode="email" autocomplete="email" placeholder="e.g. priya@college.edu" value="${esc(ls.get('mdc_mail')||'')}"></label>
+      <label>Registration number<input id="rn" maxlength="20" placeholder="e.g. 21CS1234" value="${esc(ls.get('mdc_reg')||'')}"></label>
+      <label>Year<select id="yr">${YEARS.map(y=>`<option${y===ySel?' selected':''}>${esc(y)}</option>`).join('')}</select></label>
+      <label>Department<select id="dp">${DEPTS.map(d=>`<option${d===dSel?' selected':''}>${esc(d)}</option>`).join('')}</select></label>
+      <label>Room code<input id="rc" maxlength="5" placeholder="ABCDE" autocapitalize="characters" value="${esc(location.hash.slice(1).slice(0,5))}"></label>
+      <button class="btn full" onclick="join()">Join the room →</button>
+    </div>
+    <p id="msg" class="msg"></p>
+    <a class="lnk" onclick="openHost()">Admin portal →</a>
+  </main>`);
+}
+
+async function join(){
+  const c=$('#rc').value.trim().toUpperCase(), n=$('#nm').value.trim();
+  const email=$('#em').value.trim(), reg=$('#rn').value.trim().toUpperCase();
+  const year=$('#yr').value, dept=$('#dp').value;
+  if(!c||!n) return msg('Both a room code and a name, please 🙂');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) return msg('Please enter a valid mail ID (e.g. priya@college.edu).');
+  if(!reg) return msg('Please add your registration number.');
+  try{
+    const s=await rref(c).get();
+    if(!s.exists) return msg("Hmm, can't find that room. Double-check the code?");
+    const r=s.data(); if(r.status==='ended') return msg('That quiz has already finished.');
+    st={c,n,r,i:0,score:0,ok:0,ms:0,v:'',email,reg,year,dept};
+    const p=await pcol(c).doc(pid).get(), now=Date.now();
+    if(p.exists){const d=p.data();Object.assign(st,{i:d.done||0,score:d.score||0,ok:d.ok||0,ms:d.ms||0,n:d.name});
+      await pcol(c).doc(pid).update({last:now,logins:(d.logins||1)+1,email,reg,year,dept})}
+    else await pcol(c).doc(pid).set({name:n,email,reg,year,dept,score:0,ok:0,ms:0,done:0,fin:false,joined:now,last:now,logins:1});
+    ls.set('mdc_name',n); ls.set('mdc_mail',email); ls.set('mdc_reg',reg); ls.set('mdc_year',year); ls.set('mdc_dept',dept);
+    unsub();
+    subs.push(rref(c).onSnapshot(s=>{if(s.exists){st.r=s.data();route()}}));
+    subs.push(pcol(c).doc(pid).onSnapshot(s=>{if(!s.exists&&st.v){unsub();st.v='';show('<main class="card center"><div class="big">👋</div><h1>You were removed</h1><p class="sub">The host took you out of this room.</p><a class="lnk" onclick="home()">Back to start</a></main>')}}));
+  }catch(e){msg('Could not join: '+(e.message||e.code))}
+}
+
+function route(){
+  const r=st.r, done=st.i>=r.qs.length;
+  const w=r.status==='ended'||done?'end':r.status==='lobby'?'lobby':'q';
+  if(w===st.v) return; st.v=w; ({end:results,lobby,q:ask})[w]();
+}
+function lobby(){
+  show(`<main class="card center"><div class="big">☕</div><h1>You're in, ${esc(st.n)}!</h1><p class="sub">${esc(st.r.title)} · ${st.r.qs.length} questions · ${st.r.secs}s each.<br>${esc(st.year)} · ${esc(st.dept)}<br>Sit tight, the host will start things shortly.</p></main>`);
+}
+function ask(){
+  const q=st.r.qs[st.i], S=st.r.secs||25, t0=Date.now(); let locked=false;
+  show(`<main class="card"><div class="top"><span>Question ${st.i+1} / ${st.r.qs.length}</span><span class="pts">${q.p} pt${q.p>1?'s':''}</span><b id="tm">${S}</b></div><div class="bar"><i id="bar"></i></div>
+  <h2>${esc(q.q)}</h2><div class="opts">${q.o.map((o,k)=>`<button class="opt" data-k="${k}"><em>${'ABCD'[k]}</em>${esc(o)}</button>`).join('')}</div><p class="live">${st.score} points so far</p></main>`);
+  const fin=k=>{
+    if(locked) return; locked=true; clearInterval(tick);
+    const ms=Math.min(S*1000,Date.now()-t0), ok=k===q.a;
+    const gain=ok?q.p*(500+Math.round(500*(S*1000-ms)/(S*1000))):0;
+    document.querySelectorAll('.opt').forEach(b=>{b.disabled=true;const j=+b.dataset.k;if(j===q.a)b.classList.add('good');else if(j===k)b.classList.add('bad')});
+    $('#tm').textContent=ok?'+'+gain:k<0?"Time's up":'Not quite';
+    st.score+=gain; st.ok+=ok?1:0; st.ms+=ms; st.i++;
+    pcol(st.c).doc(pid).update({score:st.score,ok:st.ok,ms:st.ms,done:st.i,fin:st.i>=st.r.qs.length,last:Date.now()}).catch(()=>{});
+    setTimeout(()=>{st.v='';route()},700);
+  };
+  document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>fin(+b.dataset.k));
+  tick=setInterval(()=>{const l=S*1000-(Date.now()-t0);$('#bar').style.width=Math.max(0,l/S/10)+'%';$('#tm').textContent=Math.max(0,Math.ceil(l/1000));if(l<=0)fin(-1)},100);
+}
+
+/* ---------- results (player) with Top Participants button ---------- */
+function results(){
+  clearInterval(tick); const N=st.r.qs.length;
+  st.allRows=st.allRows||[];
+  show(`<main class="card wide">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;margin-bottom:6px">
+      <div>
+        <h1 style="margin:0">${st.i>=N?'You did it! 🎉':'Quiz finished'}</h1>
+        <p class="sub" style="margin:4px 0 0">You scored <b>${st.score}</b> points · ${st.ok}/${N} correct · ${(st.ms/1000).toFixed(1)}s total</p>
+      </div>
+      <button class="btn" style="width:auto;margin:0;padding:11px 18px" onclick="showTop5()">🏆 Top Participants</button>
+    </div>
+    <h3>Leaderboard</h3><div id="lb">Loading…</div>
+    ${top5ModalHTML()}
+  </main>`);
+  subs.push(pcol(st.c).onSnapshot(s=>{
+    st.allRows=s.docs.map(d=>({id:d.id,...d.data()}));
+    const e=$('#lb'); if(e) e.innerHTML=board(st.allRows,false);
+  }));
+}
+
+/* ---------- top 5 modal helpers (with histogram) ---------- */
+function top5ModalHTML(){
+  return `<div id="top5-modal" class="modal" style="display:none">
+    <div class="modal-card">
+      <h2>🏆 Top 5 Participants</h2>
+      <div id="top5-list"></div>
+      <button class="btn" onclick="closeTop5()">Close</button>
+    </div>
+  </div>`;
+}
+function showTop5(){
+  const rows=(st.allRows||[]).slice().sort((a,b)=>b.score-a.score||a.ms-b.ms).slice(0,5);
+  const medals=['🥇','🥈','🥉','4️⃣','5️⃣'];
+  const max=Math.max(...rows.map(p=>p.score||0),1);
+  const list=$('#top5-list');
+  if(list){
+    if(!rows.length){
+      list.innerHTML='<p class="sub" style="text-align:center;margin:0">No scores yet.</p>';
+    } else {
+      const bars=rows.map(p=>{
+        const h=Math.max(4,Math.round((p.score/max)*100));
+        return `<div class="hist-col">
+          <div class="hist-bar${p.id===pid?' me':''}" style="height:${h}%">
+            <span class="hist-val">${p.score}</span>
+          </div>
+        </div>`;
+      }).join('');
+      const names=rows.map((p,i)=>
+        `<div class="nm-col${p.id===pid?' me':''}">${medals[i]} ${esc(p.name)}${p.id===pid?' (you)':''}</div>`
+      ).join('');
+      list.innerHTML=`<div class="hist">
+        <div class="hist-bars">${bars}</div>
+        <div class="hist-names">${names}</div>
+      </div>`;
+    }
+  }
+  const m=$('#top5-modal'); if(m) m.style.display='flex';
+}
+function closeTop5(){ const m=$('#top5-modal'); if(m) m.style.display='none'; }
+
+function board(rows,adm){
+  const N=st.r?st.r.qs.length:0; rows.sort((a,b)=>b.score-a.score||a.ms-b.ms);
+  return `<ol class="lb">${rows.map((p,i)=>`<li class="${p.id===pid?'me':''}"><span class="rk">${['🥇','🥈','🥉'][i]||i+1}</span><span class="nm">${esc(p.name)}${p.id===pid?' (you)':''}</span>${adm?`<small>${esc(p.year||'—')} · ${esc(p.dept||'—')}</small><small>${p.done}/${N} · ${p.ok} ✓</small>`:`<small>${p.fin?'':'playing…'}</small>`}<small>${(p.ms/1000).toFixed(1)}s</small><b>${p.score}</b>${adm?`<button class="x" title="Remove" onclick="kick('${p.id}')">✕</button>`:''}</li>`).join('')||'<p class="sub">Nobody here yet.</p>'}</ol>`;
+}
+function logins(rows){
+  const N=st.r.qs.length, now=Date.now();
+  rows=rows.slice().sort((a,b)=>(a.joined||0)-(b.joined||0));
+  return `<div class="tw"><table><thead><tr><th>#</th><th>Player</th><th>Mail ID</th><th>Reg. No.</th><th>Year</th><th>Department</th><th>Logged in</th><th>Last active</th><th>Logins</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>${rows.map((p,i)=>{
+    const on=p.last&&now-p.last<30000, s=p.fin?'Finished':p.done?'Playing':'In lobby';
+    return `<tr><td>${i+1}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.email||'—')}</td><td>${esc(p.reg||'—')}</td><td>${esc(p.year||'—')}</td><td>${esc(p.dept||'—')}</td><td>${tm(p.joined)}</td><td>${tm(p.last)}</td><td>${p.logins||1}</td><td>${p.done}/${N}</td><td><span class="dot ${p.fin?'':on?'on':'dn'}"></span>${s}${on&&!p.fin?' · online':''}</td><td><button class="x" title="Remove" onclick="kick('${p.id}')">✕</button></td></tr>`}).join('')||'<tr><td colspan="12" class="sub">Nobody has logged in yet.</td></tr>'}</tbody></table></div>`;
+}
+
+/* ---------- admin portal ---------- */
+const HOST_PW='MDC26'; let unlocked=false;
+function openHost(){
+  if(unlocked) return hostForm();
+  unsub();
+  show(`<main class="card"><h1>Admin portal 🔑</h1><p class="sub">Enter the host password to continue.</p><label>Password<input id="pw" type="password"></label><button class="btn" onclick="unlock()">Unlock</button><p id="msg" class="msg"></p><a class="lnk" onclick="home()">← Back</a></main>`);
+  $('#pw').onkeydown=e=>{if(e.key==='Enter')unlock()}; $('#pw').focus();
+}
+function unlock(){ if($('#pw').value===HOST_PW){unlocked=true;hostForm()} else msg("That password isn't right, try again."); }
+function hostForm(){
+  unsub(); const last=ls.get('mdc_room');
+  show(`<main class="card wide"><h1>Host a quiz</h1><p class="sub">Starts with the built-in Time Complexity quiz. To use your own, load a JSON file in the same format (title, questions[question, options{A..D}, correct_answer, points]).</p>
+  <input type="file" id="f" accept=".json"><label>…or paste JSON<textarea id="js" rows="4"></textarea></label>
+  <label>Seconds per question<input id="secs" type="number" value="25" min="5" max="120"></label>
+  <button class="btn" onclick="create()">Create room</button>${last?`<button class="btn alt" onclick="dash('${esc(last)}')">Resume room ${esc(last)}</button>`:''}
+  <p id="msg" class="msg"></p><a class="lnk" onclick="home()">← Back</a></main>`);
+  $('#f').onchange=e=>e.target.files[0]&&e.target.files[0].text().then(t=>$('#js').value=t);
+}
+async function create(){
+  try{
+    const t=$('#js').value.trim(); let qz;
+    if(t){
+      const j=JSON.parse(t);
+      qz={title:j.title||'Quiz',qs:j.questions.map(q=>({q:q.question,o:Object.values(q.options),a:Object.keys(q.options).indexOf(q.correct_answer),p:q.points||1}))};
+      if(!qz.qs.length||qz.qs.some(q=>q.a<0||q.o.length<2)) throw Error('Each question needs 2+ options and a valid correct_answer');
+    } else qz={title:'Time Complexity Quiz',qs:Q0.map(([q,o,a,p])=>({q,o:o.split('|'),a,p}))};
+    const c=Array.from({length:5},()=>'ABCDEFGHJKMNPQRSTUVWXYZ23456789'[Math.random()*31|0]).join('');
+    await rref(c).set({title:qz.title,qs:qz.qs,secs:+$('#secs').value||25,status:'lobby',at:Date.now()});
+    ls.set('mdc_room',c); dash(c);
+  }catch(e){msg('Could not create: '+(e.message||e.code))}
+}
+function dash(c){
+  unsub(); st={v:'dash',c,rows:[],allRows:[],tab:'lb'};
+  show(`<main class="card wide"><div class="hd"><div><small class="sub">Room code, share it with players</small><div class="code">${c}</div></div><div id="hb"></div></div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs"><button class="tab on" id="t-lb" onclick="tab('lb')">🏆 Leaderboard</button><button class="tab" id="t-lg" onclick="tab('lg')">🔐 Login log</button></div>
+  <div id="lb"></div><a class="lnk" onclick="home()">← Leave portal</a>${top5ModalHTML()}</main>`);
+  subs.push(rref(c).onSnapshot(s=>{if(!s.exists)return;st.r=s.data();
+    const b=$('#hb'),S=st.r.status;
+    b.innerHTML=S==='lobby'
+      ? '<button class="btn" onclick="setS(\'live\')">Start quiz ▶</button>'
+      : S==='live'
+        ? '<button class="btn alt" onclick="setS(\'ended\')">End quiz ■</button>'
+        : '<button class="btn" onclick="showTop5()">🏆 Top Participants</button> <button class="btn alt" onclick="openHost()">New quiz</button>';
+    paint()}));
+  subs.push(pcol(c).onSnapshot(s=>{st.rows=s.docs.map(d=>({id:d.id,...d.data()}));st.allRows=st.rows;paint()}));
+  tick=setInterval(()=>{if(st.tab==='lg')paint()},10000);
+}
+function tab(t){st.tab=t;$('#t-lb').classList.toggle('on',t==='lb');$('#t-lg').classList.toggle('on',t==='lg');paint()}
+function paint(){
+  if(!$('#lb')||!st.r) return;
+  const n=st.rows.length, f=st.rows.filter(p=>p.fin).length, on=st.rows.filter(p=>p.last&&Date.now()-p.last<30000&&!p.fin).length;
+  $('#stats').innerHTML=`<div><b>${n}</b>Logged in</div><div><b>${f}</b>Finished</div><div><b>${st.r.status}</b>Status · ${on} online</div>`;
+  $('#lb').innerHTML=st.tab==='lg'?logins(st.rows):board(st.rows.slice(),true);
+}
+const setS=s=>rref(st.c).update({status:s});
+const kick=id=>pcol(st.c).doc(id).delete();
+</script></body></html>
