@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hack-O-Ween Scoreboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@400;500;600;700&family=Bungee&display=swap" rel="stylesheet">
+<style>
+:root{
+  --crypt:#170E2B; --crypt-2:#201437; --crypt-3:#2B1B4B; --line:#3C2B69;
+  --bone:#F4EEE0; --mist:#B8ACDA; --mist-2:#9486BD;
+  --pumpkin:#FF8A1F; --wisp:#A98BFF; --ecto:#5CF2C0;
+  --red:#FF6B81; --amber:#FFC247; --blue:#74B9FF;
+  --display:'Bungee','Impact','Arial Black',sans-serif;
+  --body:'Barlow Semi Condensed','Segoe UI','Arial Narrow',system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--crypt);color:var(--bone);font:500 1rem/1.4 var(--body);-webkit-font-smoothing:antialiased}
+button,input,select,textarea{font:inherit;color:inherit}
+h1,h2,h3{margin:0;font-weight:700;line-height:1.15}
+h1{font-size:1.8rem}
+h2{font-size:1.25rem;margin-bottom:.6rem}
+h3{font-size:1.05rem;margin:1rem 0 .4rem}
+p{margin:.3rem 0}
+small{color:var(--mist-2);font-weight:500}
+:focus-visible{outline:2px solid var(--bone);outline-offset:2px}
+.dim{color:var(--mist-2)}
+.em{color:var(--mist-2);font-size:.9em}
+
+/* ---------- controls ---------- */
+.btn{display:inline-block;background:transparent;border:1px solid var(--mist-2);color:var(--bone);padding:.5rem .95rem;border-radius:6px;font-weight:600;cursor:pointer;text-decoration:none;line-height:1.2}
+.btn:hover{border-color:var(--bone)}
+.btn.primary{background:var(--pumpkin);border-color:var(--pumpkin);color:#1b0f08;font-weight:700}
+.btn.primary:hover{background:#ff9d44;border-color:#ff9d44}
+.btn.danger{border-color:var(--red);color:var(--red)}
+.btn.warn{border-color:var(--amber);color:var(--amber)}
+.btn.big{padding:.8rem 1.2rem;font-size:1.1rem;width:100%}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+.mini{background:transparent;border:1px solid var(--mist-2);border-radius:5px;padding:.1rem .5rem;font-size:.85rem;font-weight:600;cursor:pointer;color:var(--bone)}
+.mini:hover{border-color:var(--bone)}
+input,select,textarea{background:var(--crypt);border:1px solid var(--line);border-radius:6px;padding:.42rem .6rem;max-width:100%}
+input:hover,select:hover,textarea:hover{border-color:var(--mist-2)}
+input.num{width:5.4rem;text-align:right;font-variant-numeric:tabular-nums}
+input.ghost{background:transparent;border-color:transparent;padding:.15rem .3rem;width:100%}
+input.ghost:hover,input.ghost:focus{border-color:var(--mist-2);background:var(--crypt)}
+.edited{border-color:var(--blue)!important;box-shadow:inset 0 -2px 0 var(--blue)}
+textarea{width:100%;font-family:inherit}
+label.fld{display:flex;flex-direction:column;gap:.25rem;font-weight:600}
+label.fld small{font-weight:500}
+
+/* ---------- admin chrome ---------- */
+.top{display:flex;align-items:center;gap:1.4rem;padding:.55rem 1.4rem;background:var(--crypt-2);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:.55rem;font-family:var(--display);font-size:1.1rem;text-transform:uppercase}
+.brand .mark{height:2.1rem;width:auto}
+.tabs{display:flex;gap:.1rem;flex:1;flex-wrap:wrap}
+.tab{border-bottom:3px solid transparent;padding:.6rem .85rem;font-weight:600;color:var(--mist);text-decoration:none}
+.tab:hover{color:var(--bone)}
+.tab[aria-current=page]{color:var(--bone);border-bottom-color:var(--pumpkin)}
+#saved{color:var(--mist-2);font-size:.9rem}
+main{max-width:1320px;margin:0 auto;padding:1.4rem}
+.pagehead{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.sub{color:var(--mist);margin:.25rem 0 0;max-width:60ch}
+.chips{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem}
+.chip2{border:1px solid var(--line);border-radius:999px;padding:.2rem .75rem;color:var(--mist);font-size:.92rem}
+.panel{background:var(--crypt-2);border:1px solid var(--line);border-radius:10px;padding:1.1rem 1.2rem}
+.warnbar{background:var(--red);color:#2a0710;padding:.55rem 1.4rem;font-weight:600}
+.emptybox{border:1px dashed var(--mist-2);border-radius:10px;padding:2rem;text-align:center;color:var(--mist)}
+
+/* ---------- tables ---------- */
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--crypt)}
+table{border-collapse:collapse;width:100%}
+th{text-align:left;font-weight:600;color:var(--mist);padding:.55rem .7rem;background:var(--crypt-2);border-bottom:1px solid var(--line);white-space:nowrap;vertical-align:bottom}
+th small{display:block;font-size:.8rem}
+td{padding:.45rem .7rem;border-bottom:1px solid rgba(60,43,105,.55);vertical-align:middle}
+tr:last-child td{border-bottom:0}
+table.lb td.rk{font-family:var(--display);font-size:1.15rem;width:3.5rem;color:var(--mist)}
+table.lb td.who b{display:block}
+table.lb td.sc{white-space:nowrap}
+table.lb .pts{margin-left:.5rem;color:var(--mist);font-variant-numeric:tabular-nums}
+table.lb td.tot{font-weight:700;font-size:1.15rem;font-variant-numeric:tabular-nums}
+
+/* ---------- import ---------- */
+.rounds{display:flex;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem}
+.roundbtn{background:var(--crypt-2);border:2px solid var(--line);border-radius:10px;padding:.7rem 1.1rem;text-align:left;cursor:pointer;min-width:12rem}
+.roundbtn b{display:block;font-size:1.05rem}
+.roundbtn[aria-pressed=true]{border-color:var(--pumpkin)}
+.drop{border:2px dashed var(--mist-2);border-radius:12px;padding:2.4rem 1rem;text-align:center}
+.drop.over{border-color:var(--pumpkin);background:rgba(255,138,31,.08)}
+.drop .big{font-size:1.4rem;font-weight:700}
+details summary{cursor:pointer;color:var(--mist);margin-top:1rem}
+.mapgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(15rem,1fr));gap:.9rem;margin:.8rem 0}
+.sample td,.sample th{font-size:.9rem;padding:.3rem .6rem}
+.actions{display:flex;gap:.6rem;margin-top:1rem;flex-wrap:wrap}
+.review{display:grid;grid-template-columns:minmax(0,1fr) 19.5rem;gap:1.2rem;align-items:start}
+@media(max-width:1050px){.review{grid-template-columns:1fr}}
+.rv-side{position:sticky;top:4.6rem;background:var(--crypt-2);border:1px solid var(--line);border-radius:10px;padding:1rem}
+.tally{list-style:none;margin:.5rem 0 1rem;padding:0;display:grid;gap:.3rem}
+.tally li{display:flex;gap:.6rem;align-items:baseline}
+.tally b{font-size:1.3rem;min-width:2.2rem;text-align:right;font-variant-numeric:tabular-nums}
+.tally .bad b{color:var(--red)} .tally .warn b{color:var(--amber)} .tally .new b{color:var(--blue)} .tally .ok b{color:var(--ecto)} .tally .skip b{color:var(--mist-2)}
+.needs{color:var(--red);font-weight:700;margin:.6rem 0 .4rem}
+.pv{list-style:none;margin:0;padding:0}
+.pv li{display:grid;grid-template-columns:1.6rem minmax(0,1fr) 2.6rem 3.4rem;gap:.4rem;padding:.2rem 0;align-items:baseline;border-bottom:1px solid rgba(60,43,105,.5)}
+.pv .n{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pv b{text-align:right;font-variant-numeric:tabular-nums}
+.up{color:var(--ecto);font-weight:700;font-size:.85rem}
+.dn{color:var(--red);font-weight:700;font-size:.85rem}
+.filters{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.7rem;align-items:center}
+.filters button{background:transparent;border:1px solid var(--line);border-radius:999px;padding:.2rem .8rem;color:var(--mist);cursor:pointer;font-weight:600}
+.filters button[aria-pressed=true]{border-color:var(--bone);color:var(--bone)}
+.filters .sp{flex:1}
+table.imp td{vertical-align:top;padding:.5rem .5rem}
+table.imp th{padding:.55rem .5rem}
+table.imp td.ln{color:var(--mist-2);width:2.6rem;text-align:right}
+table.imp td.st{min-width:11rem;max-width:14rem}
+table.imp td.as{min-width:14.5rem}
+table.imp td.fl{min-width:12.5rem}
+table.imp input.num{width:4.8rem}
+table.imp input.num.time{width:6.2rem}
+table.imp td.as select{width:100%}
+table.imp tr.r.isnew{box-shadow:inset 5px 0 0 var(--blue)}
+table.imp tr.r.warn{background:rgba(255,194,71,.11);box-shadow:inset 5px 0 0 var(--amber)}
+table.imp tr.r.bad{background:rgba(255,107,129,.14);box-shadow:inset 5px 0 0 var(--red)}
+table.imp tr.r.skip{opacity:.45}
+.badge{display:inline-flex;align-items:center;gap:.35rem;border-radius:999px;padding:.1rem .6rem;font-weight:700;font-size:.85rem}
+.badge::before{content:'';width:.5rem;height:.5rem;border-radius:50%;background:currentColor}
+.badge.bad{background:rgba(255,107,129,.22);color:var(--red)}
+.badge.warn{background:rgba(255,194,71,.2);color:var(--amber)}
+.badge.ok{background:rgba(92,242,192,.14);color:var(--ecto)}
+.badge.new{background:rgba(116,185,255,.16);color:var(--blue)}
+.badge.skip{background:rgba(184,172,218,.15);color:var(--mist)}
+.iss{display:block;font-size:.9rem;margin-top:.25rem}
+.iss.bad{color:#ffb7c2;font-weight:600}
+.iss.warn{color:#ffe1a0}
+.iss.tag{color:var(--blue)}
+.sugg{margin-top:.4rem;display:flex;gap:.35rem;flex-wrap:wrap;align-items:center;font-size:.9rem;color:var(--mist)}
+.newtag{color:var(--blue);font-weight:700}
+.missing{margin-top:1rem}
+.missing table{width:auto}
+.done{text-align:left}
+.done h2{font-size:1.5rem}
+
+/* ---------- final round ---------- */
+.fgrid{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:1.2rem;align-items:start}
+@media(max-width:1000px){.fgrid{grid-template-columns:1fr}}
+.stack{display:grid;gap:1.2rem}
+.res{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.1rem .8rem;width:100%;text-align:left;background:var(--crypt);border:1px solid var(--line);border-radius:6px;padding:.5rem .7rem;margin-top:.4rem;cursor:pointer}
+.res:hover{border-color:var(--pumpkin)}
+.res .em{grid-column:1}
+.res .bn{grid-row:1/3;grid-column:2;align-self:center;font-weight:700;color:var(--ecto)}
+.selected{margin:.8rem 0;min-height:2.4rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.selected b{font-size:1.35rem}
+.quick{display:flex;flex-wrap:wrap;gap:.6rem;margin:.5rem 0 1rem}
+.q{font-family:var(--display);font-size:1.5rem;padding:.65rem 1.1rem;border-radius:8px;border:2px solid var(--ecto);background:transparent;color:var(--ecto);cursor:pointer}
+.q:hover:not(:disabled){background:var(--ecto);color:var(--crypt)}
+.q.neg{border-color:var(--red);color:var(--red)}
+.q.neg:hover:not(:disabled){background:var(--red);color:var(--crypt)}
+.q:disabled{opacity:.3;cursor:not-allowed}
+.q kbd{font:600 .75rem var(--body);opacity:.75;margin-right:.45rem;vertical-align:.3em}
+.customrow{display:flex;gap:.5rem;flex-wrap:wrap}
+.customrow input[type=number]{width:6.5rem}
+.customrow input.note{flex:1;min-width:10rem}
+.alog{list-style:none;margin:0;padding:0;max-height:22rem;overflow:auto}
+.alog li{display:grid;grid-template-columns:3.6rem minmax(0,1fr) auto auto;gap:.2rem .7rem;align-items:center;padding:.4rem 0;border-bottom:1px solid rgba(60,43,105,.55)}
+.alog li.void{opacity:.45;text-decoration:line-through}
+.alog .d{font-family:var(--display);font-size:1.05rem}
+.alog .d.pos{color:var(--ecto)} .alog .d.neg{color:var(--red)}
+.alog .t{grid-column:2;color:var(--mist-2);font-size:.88rem}
+.alog time{color:var(--mist-2);font-size:.85rem}
+.revbtns{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.6rem}
+
+/* ---------- settings ---------- */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(14rem,1fr));gap:1rem;margin:.6rem 0 1.4rem}
+.roundcfg{border-top:1px solid var(--line);padding-top:1rem;margin-top:1rem}
+.explain{color:var(--mist);max-width:70ch}
+.explain li{margin:.25rem 0}
+.row-actions{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}
+
+/* ---------- dialog + toast ---------- */
+dialog{background:var(--crypt-2);color:var(--bone);border:1px solid var(--mist-2);border-radius:12px;padding:1.3rem;width:min(34rem,92vw)}
+.dlgbody{display:grid;gap:.8rem}
+dialog::backdrop{background:rgba(10,5,20,.72)}
+dialog form{display:grid;gap:.8rem}
+.dlg-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.4rem}
+#toast{position:fixed;left:50%;bottom:1.4rem;transform:translate(-50%,16px);background:var(--crypt-3);border:1px solid var(--mist-2);padding:.6rem 1.1rem;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;z-index:60;max-width:90vw;font-weight:600}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+#toast.bad{border-color:var(--red)}
+
+/* ---------- the screen (projector view) ---------- */
+.screen{background:var(--crypt);font-size:16px;--n:10;position:relative}
+.screen.embed{border:1px solid var(--line);border-radius:12px;padding:1.4rem 1.6rem 1.6rem;min-height:30rem}
+.screen.full,.screen:fullscreen{position:fixed;inset:0;display:flex;flex-direction:column;padding:2.2vh 3vw 2.4vh;overflow:hidden;font-size:clamp(11px,calc(76vh / var(--n) / 2.7),3.6vh)}
+.screen .head{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem;flex-wrap:wrap;margin-bottom:1.1rem}
+.screen.full .head,.screen:fullscreen .head{margin-bottom:1.6vh}
+.screen h1{font-family:var(--display);font-weight:400;font-size:clamp(2rem,5.6vw,3.6rem);text-transform:uppercase;display:flex;align-items:center;gap:.08em;line-height:1;margin:0;letter-spacing:.01em}
+.screen.full h1,.screen:fullscreen h1{font-size:clamp(2rem,7.2vh,6rem)}
+.screen h1 .mark{height:1.02em;width:auto;flex:none;margin:0 .04em}
+.screen h1 .hy{opacity:.55}
+.stage{font-size:1.25rem;color:var(--mist);font-weight:600;margin-top:.5rem}
+.screen.full .stage,.screen:fullscreen .stage{font-size:clamp(1rem,2.9vh,2rem);margin-top:1vh}
+.legend{display:flex;gap:1.3rem;flex-wrap:wrap;font-weight:600;font-size:1.05rem;color:var(--mist)}
+.screen.full .legend,.screen:fullscreen .legend{font-size:clamp(.9rem,2.5vh,1.7rem)}
+.legend i{display:inline-block;width:.85em;height:.85em;border-radius:3px;margin-right:.45em;vertical-align:-.08em}
+.legend i.hatch{background:repeating-linear-gradient(135deg,rgba(92,242,192,.7) 0 3px,transparent 3px 6px);border:1px solid var(--ecto)}
+.rows{display:flex;flex-direction:column;gap:.28em;position:relative}
+.screen.full .rows,.screen:fullscreen .rows{flex:1;min-height:0}
+.rw{position:relative;display:grid;grid-template-columns:2.3em 2.5em minmax(0,13.5em) minmax(0,1fr) 5.4em;gap:.7em;align-items:center;height:2.7em;padding:0 .7em;border-left:.2em solid transparent;border-radius:.3em;flex:none}
+.screen.full .rw,.screen:fullscreen .rw{flex:1 1 0;min-height:0;max-height:3.1em;height:auto}
+.rw.first{background:rgba(255,138,31,.13);border-left-color:var(--pumpkin)}
+.rw .rk{font-family:var(--display);font-size:1.3em;color:var(--mist);text-align:right}
+.rw .rk.podium{color:var(--bone)}
+.rw .mv{font-weight:700;font-size:.8em;text-align:left}
+.rw .mv.up{color:var(--ecto)} .rw .mv.dn{color:var(--red)}
+.rw .nm{font-weight:600;font-size:1.35em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track{position:relative;height:.95em;background:rgba(244,238,224,.09);border-radius:999px;overflow:hidden;display:flex}
+.track::after{content:'';position:absolute;top:0;bottom:0;left:var(--base,80%);right:0;background:repeating-linear-gradient(135deg,rgba(92,242,192,.22) 0 .35em,transparent .35em .7em);pointer-events:none}
+.seg{position:relative;z-index:1;height:100%;width:0;transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.seg.r1{background:var(--pumpkin)} .seg.r2{background:var(--wisp)} .seg.b{background:var(--ecto)}
+.rw .tot{position:relative;font-family:var(--display);font-size:1.25em;text-align:right;font-variant-numeric:tabular-nums}
+.chip{position:absolute;right:0;top:0;transform:translateY(-70%);font-family:var(--display);font-size:.8em;opacity:0;transition:opacity .3s;pointer-events:none}
+.chip.on{opacity:1}
+.chip.pos{color:var(--ecto)} .chip.neg{color:var(--red)}
+.rw.pulse{animation:pulse 2.6s ease-out}
+@keyframes pulse{0%{background:rgba(92,242,192,.42)}100%{background:transparent}}
+.rw.first.pulse{animation-name:pulse1}
+@keyframes pulse1{0%{background:rgba(92,242,192,.42)}100%{background:rgba(255,138,31,.13)}}
+.rw.veiled .nm,.rw.veiled .tot .v{filter:blur(.28em);opacity:.6}
+.screen .empty{padding:4vh 0;font-size:1.6rem;color:var(--mist);font-weight:600}
+.screen .hint{position:absolute;right:1.2rem;bottom:.8rem;color:var(--mist-2);font-size:.9rem;animation:fadehint 8s forwards}
+@keyframes fadehint{0%,70%{opacity:1}100%{opacity:0}}
+@media(max-width:760px){
+  .rw{grid-template-columns:1.8em 2em minmax(0,1fr) 4.6em;height:auto;padding:.4em .5em}
+  .rw .track{grid-column:3/5;grid-row:2}
+}
+@media(prefers-reduced-motion:reduce){
+  .seg{transition:none} .rw.pulse{animation:none} .screen .hint{animation:none}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="screenRoot" class="screen full" hidden></div>
+<dialog id="dlg"></dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<script async src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+(function(){
+'use strict';
+const $=(s,r=document)=>r.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// <LOGIC>
+const round1=n=>Math.round(n*10)/10;
+const uid=()=>Math.random().toString(36).slice(2,8)+Date.now().toString(36).slice(-4);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const normEmail=s=>String(s==null?'':s).trim().toLowerCase();
+const normName=s=>String(s==null?'':s).toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+
+function defaultState(){
+  return {
+    v:1, rev:0,
+    config:{
+      eventName:'Hack-O-Ween', stageOverride:'',
+      r1:{name:'Coding', weight:400, mode:'max', max:100, timePct:10, timeLimit:null},
+      r2:{name:'Quiz', weight:400, mode:'max', max:null, timePct:0, timeLimit:null},
+      bonus:{name:'Logo round', cap:200},
+      quick:[20,10,-5],
+      topN:10
+    },
+    people:{}, scores:{r1:{},r2:{}}, bonus:[], checkpoint:{}, reveal:{on:false,count:0}, last:null, log:[]
+  };
+}
+function normalizeState(s){
+  const d=defaultState(); s=s||{}; const cfg=s.config||{};
+  const out=Object.assign({},d,s);
+  out.config=Object.assign({},d.config,cfg,{
+    r1:Object.assign({},d.config.r1,cfg.r1||{}),
+    r2:Object.assign({},d.config.r2,cfg.r2||{}),
+    bonus:Object.assign({},d.config.bonus,cfg.bonus||{})
+  });
+  out.scores={r1:Object.assign({},(s.scores&&s.scores.r1)||{}), r2:Object.assign({},(s.scores&&s.scores.r2)||{})};
+  out.people=s.people||{}; out.bonus=s.bonus||[]; out.checkpoint=s.checkpoint||{};
+  out.reveal=Object.assign({},d.reveal,s.reveal||{}); out.log=s.log||[];
+  return out;
+}
+
+function detectDelimiter(text){
+  const first=text.split(/\r?\n/).find(l=>l.trim())||'';
+  const counts={',':0,';':0,'\t':0}; let q=false;
+  for(const ch of first){ if(ch==='"') q=!q; else if(!q && ch in counts) counts[ch]++; }
+  const best=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+  return counts[best]>0?best:',';
+}
+function parseCSV(text){
+  text=String(text).replace(/^﻿/,'');
+  const d=detectDelimiter(text);
+  const rows=[]; let row=[], cell='', q=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(q){
+      if(ch==='"'){ if(text[i+1]==='"'){ cell+='"'; i++; } else q=false; }
+      else cell+=ch;
+    } else if(ch==='"' && cell===''){ q=true; }
+    else if(ch===d){ row.push(cell); cell=''; }
+    else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&text[i+1]==='\n') i++; row.push(cell); cell=''; rows.push(row); row=[]; }
+    else cell+=ch;
+  }
+  if(cell!==''||row.length){ row.push(cell); rows.push(row); }
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+function toCSV(rows){
+  return rows.map(r=>r.map(c=>{ c=String(c==null?'':c); return /[",\n\r]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c; }).join(',')).join('\r\n');
+}
+
+function guessColumns(headers){
+  const H=headers.map(h=>String(h==null?'':h).trim());
+  const find=(pats,bad)=>{ for(const p of pats){ const i=H.findIndex(h=>p.test(h)&&!(bad&&bad.test(h))); if(i>=0) return i; } return -1; };
+  const g={
+    email:find([/^e-?mail([\s_]*(address|id))?$/i,/e-?mail/i]),
+    name:find([/^(candidate|participant|student|full)?[\s_]*name$/i,/(candidate|participant|student|full)[\s_]*name/i,/name/i],/test|owner|team|file|user[\s_]*name/i),
+    id:find([/^(participant|candidate|student|user|roll|reg(istration)?)?[\s_]*(id|no\.?|number)$/i,/^(hacker|hackerrank[\s_]*(user(name)?|handle|id)|user[\s_]*name|username|handle|login)$/i,/hacker/i],/test|question|attempt|score|marks|points|time|rank$/i),
+    score:find([/^(total|final|overall)[\s_]*(score|marks|points)$/i,/^(score|marks|points)$/i,/(total|final|overall).*(score|marks|points)/i,/(score|marks|points)/i],/cutoff|max|section|skill|tag|case|percent|%|out of|possible/i),
+    time:find([/time[\s_]*(taken|spent)/i,/^(duration|time)$/i,/duration|elapsed/i],/case|window|out of|start|end|submitted|zone/i),
+    max:find([/^(max|maximum)[\s_]*(possible)?[\s_]*(score|marks|points)$/i,/out[\s_]*of/i,/^possible/i,/max[\s_]*(score|marks)/i],null)
+  };
+  if(g.name>=0 && g.name===g.email) g.name=-1;
+  return g;
+}
+function parseScore(t){
+  const s=String(t==null?'':t).trim();
+  if(s===''||/^(-|—|n\/?a|na|null|none)$/i.test(s)) return {value:null,blank:true,invalid:false};
+  const m=s.replace(/,/g,'').match(/^(-?\d+(?:\.\d+)?)\s*(?:\/\s*(\d+(?:\.\d+)?))?\s*%?$/);
+  if(!m) return {value:null,blank:false,invalid:true};
+  return {value:parseFloat(m[1]),blank:false,invalid:false};
+}
+function parseTime(t,unit){
+  const s=String(t==null?'':t).trim(); if(!s) return null;
+  if(/^\d+:\d{1,2}(:\d{1,2}(\.\d+)?)?$/.test(s)){
+    const p=s.split(':').map(Number);
+    return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1];
+  }
+  const n=parseFloat(s.replace(/,/g,'')); if(!isFinite(n)||!/^[\d.,\s]+$/.test(s)) return null;
+  return unit==='min'?n*60:n;
+}
+function fmtTime(sec){
+  if(sec==null||!isFinite(sec)) return '';
+  const t=Math.round(sec),h=Math.floor(t/3600),m=Math.floor(t%3600/60),s=t%60,p=n=>String(n).padStart(2,'0');
+  return h?h+':'+p(m)+':'+p(s):m+':'+p(s);
+}
+
+function lev(a,b){
+  if(a===b) return 0; const m=a.length,n=b.length; if(!m) return n; if(!n) return m;
+  let prev=Array.from({length:n+1},(_,j)=>j);
+  for(let i=1;i<=m;i++){ const cur=[i]; for(let j=1;j<=n;j++){ cur[j]=Math.min(prev[j]+1,cur[j-1]+1,prev[j-1]+(a[i-1]===b[j-1]?0:1)); } prev=cur; }
+  return prev[n];
+}
+function sim(a,b){ if(!a||!b) return 0; return 1-lev(a,b)/Math.max(a.length,b.length); }
+function similarity(file,p){
+  const a=normName(file.name), b=normName(p.name);
+  const ea=normEmail(file.email).split('@')[0], eb=normEmail(p.email).split('@')[0];
+  let s=0;
+  if(a&&b){ s=Math.max(s,sim(a,b),sim(a.split(' ').sort().join(' '),b.split(' ').sort().join(' '))); }
+  if(ea&&eb) s=Math.max(s,sim(ea,eb));
+  const xa=normEmail(file.ext), xb=normEmail(p.ext);
+  if(xa&&xb) s=Math.max(s,sim(xa,xb));
+  if(xa&&eb) s=Math.max(s,sim(xa,eb));
+  if(xa&&b) s=Math.max(s,sim(xa,b.replace(/ /g,'')));
+  return s;
+}
+function indexPeople(people){
+  const byEmail={},byExt={},byName={};
+  Object.values(people).forEach(p=>{
+    const e=normEmail(p.email); if(e) byEmail[e]=p.id;
+    const x=normEmail(p.ext); if(x) byExt[x]=p.id;
+    const n=normName(p.name); if(n) (byName[n]=byName[n]||[]).push(p.id);
+  });
+  return {byEmail,byExt,byName};
+}
+function matchRow(file,idx,people){
+  const empty=!Object.keys(people).length;
+  const e=normEmail(file.email),x=normEmail(file.ext),n=normName(file.name);
+  if(e&&idx.byEmail[e]) return {assign:{type:'pid',pid:idx.byEmail[e]},how:'email',sugg:[]};
+  if(x&&idx.byExt[x]) return {assign:{type:'pid',pid:idx.byExt[x]},how:'id',sugg:[]};
+  if(n&&idx.byName[n]&&idx.byName[n].length===1) return {assign:{type:'pid',pid:idx.byName[n][0]},how:'name',sugg:[]};
+  if(empty) return {assign:{type:'new'},how:'new',sugg:[]};
+  const sugg=Object.values(people).map(p=>({id:p.id,s:similarity(file,p)})).filter(o=>o.s>=0.6).sort((a,b)=>b.s-a.s).slice(0,4).map(o=>o.id);
+  return {assign:{type:null},how:'none',sugg};
+}
+function buildReviewRows(table,map,unit,state){
+  const idx=indexPeople(state.people);
+  return table.rows.map((r,i)=>{
+    const g=k=>(map[k]!=null&&map[k]>=0)?String(r[map[k]]==null?'':r[map[k]]).trim():'';
+    const file={name:g('name'),email:g('email'),ext:g('id')};
+    const m=matchRow(file,idx,state.people);
+    return {
+      id:'r'+i, line:i+2, file, assign:m.assign, how:m.how, sugg:m.sugg, confirmed:false, changing:false, prevAssign:null,
+      scoreText:g('score'), origScoreText:g('score'), score:parseScore(g('score')),
+      timeText:g('time'), origTimeText:g('time'), time:parseTime(g('time'),unit),
+      newName:file.name||file.ext, newEmail:file.email, ext:file.ext, rowMax:g('max')?parseFloat(g('max')):null, order:i
+    };
+  });
+}
+function analyzeRows(rows,state,maxScore){
+  const out={},byPid={},byNew={};
+  const newKey=r=>normEmail(r.newEmail)||('n:'+normName(r.newName));
+  rows.forEach(r=>{
+    if(r.assign.type==='pid') (byPid[r.assign.pid]=byPid[r.assign.pid]||[]).push(r);
+    else if(r.assign.type==='new'){ const k=newKey(r); if(k!=='n:') (byNew[k]=byNew[k]||[]).push(r); }
+  });
+  rows.forEach(r=>{
+    const iss=[]; const add=(sev,text)=>iss.push({sev,text});
+    if(r.assign.type==='skip'){ out[r.id]={sev:'skip',issues:[]}; return; }
+    if(r.assign.type==null) add('bad',r.how==='none'?'No participant matches this row.':'Choose who this row belongs to.');
+    if(r.assign.type==='pid'){
+      if(!state.people[r.assign.pid]) add('bad','That participant no longer exists.');
+      if(r.how==='name'&&!r.confirmed) add('warn','Matched by name only. The email did not match, so check it is the right person.');
+      const same=byPid[r.assign.pid]||[];
+      if(same.length>1) add('bad','Same participant as line '+same.filter(x=>x!==r).map(x=>x.line).join(', ')+'. Skip one of them.');
+    }
+    if(r.assign.type==='new'){
+      const same=byNew[newKey(r)]||[];
+      if(same.length>1) add('bad','Duplicate of line '+same.filter(x=>x!==r).map(x=>x.line).join(', ')+'. Skip one of them.');
+      if(!String(r.newName||'').trim()&&!String(r.newEmail||'').trim()) add('bad','Add a name or an email for this new participant.');
+    }
+    const s=r.score;
+    if(s.invalid) add('bad','Score is not a number: "'+r.scoreText+'".');
+    else if(s.blank) add('warn','Score is blank, so no score is recorded.');
+    else if(s.value<0) add('bad','Score cannot be negative.');
+    else if(maxScore!=null&&s.value>maxScore) add('bad','Score is above the maximum of '+maxScore+'.');
+    if(r.timeText&&r.time==null) add('warn','Could not read the time, so it is ignored.');
+    out[r.id]={sev:iss.some(x=>x.sev==='bad')?'bad':iss.some(x=>x.sev==='warn')?'warn':'ok',issues:iss};
+  });
+  return out;
+}
+function applyImport(state,key,rows,patch,missing){
+  const s=clone(state);
+  Object.assign(s.config[key],patch||{});
+  const scores={};
+  rows.forEach(r=>{
+    if(r.assign.type==='skip'||r.assign.type==null) return;
+    let pid;
+    if(r.assign.type==='new'){
+      pid='p_'+uid();
+      const email=String(r.newEmail||'').trim();
+      const name=String(r.newName||'').trim()||(email?email.split('@')[0]:'Unnamed');
+      s.people[pid]={id:pid,name,email,ext:String(r.ext||'').trim(),dq:false};
+    } else {
+      pid=r.assign.pid; const p=s.people[pid]; if(!p) return;
+      if(!p.email&&r.file.email) p.email=r.file.email;
+      if(!p.ext&&r.file.ext) p.ext=r.file.ext;
+    }
+    if(r.score.value==null||r.score.invalid) return;
+    scores[pid]={raw:r.score.value,time:r.time,edited:r.scoreText!==r.origScoreText||r.timeText!==r.origTimeText};
+  });
+  Object.keys(missing||{}).forEach(pid=>{
+    if(!s.people[pid]) return;
+    const sc=parseScore(missing[pid].text); if(sc.value==null) return;
+    scores[pid]={raw:sc.value,time:null,edited:true};
+  });
+  s.scores[key]=scores;
+  return s;
+}
+
+function computeBoard(state){
+  const cfg=state.config;
+  const active=Object.values(state.people).filter(p=>!p.dq);
+  const scaler=key=>{
+    const c=cfg[key], sc=state.scores[key]||{};
+    const vals=active.map(p=>sc[p.id]).filter(s=>s&&s.raw!=null&&isFinite(s.raw)).map(s=>s.raw);
+    const top=vals.length?Math.max.apply(null,vals):0, n=vals.length;
+    return pid=>{
+      const s=sc[pid];
+      if(!s||s.raw==null||!isFinite(s.raw)) return {raw:null,time:null,pts:0,adj:0,edited:false};
+      let f=0;
+      if(s.raw>0){
+        if(c.mode==='top') f=top>0?s.raw/top:0;
+        else if(c.mode==='pct'){ let below=0,eq=0; vals.forEach(v=>{ if(v<s.raw) below++; else if(v===s.raw) eq++; }); f=n>0?(below+0.5*eq)/n:0; }
+        else { const m=c.max>0?c.max:top; f=m>0?s.raw/m:0; }
+      }
+      f=Math.min(1,Math.max(0,f));
+      const base=round1((c.weight||0)*f);
+      let pen=0;
+      if(c.timePct>0&&c.timeLimit>0&&s.time!=null&&isFinite(s.time)) pen=Math.min(c.timePct,100)/100*Math.min(1,Math.max(0,s.time/(c.timeLimit*60)));
+      const pts=round1((c.weight||0)*f*(1-pen));
+      return {raw:s.raw,time:s.time==null?null:s.time,pts,adj:round1(pts-base),edited:!!s.edited};
+    };
+  };
+  const f1=scaler('r1'), f2=scaler('r2');
+  const bsum={},bcount={};
+  state.bonus.forEach(b=>{ if(!b.void){ bsum[b.pid]=(bsum[b.pid]||0)+b.delta; bcount[b.pid]=(bcount[b.pid]||0)+1; } });
+  const cap=cfg.bonus.cap>0?cfg.bonus.cap:null;
+  const rows=active.map(p=>{
+    const r1=f1(p.id), r2=f2(p.id);
+    const raw=bsum[p.id]||0, capped=cap!=null&&raw>cap;
+    const bonus={raw:round1(raw),pts:round1(capped?cap:raw),capped,count:bcount[p.id]||0};
+    return {id:p.id,name:p.name,email:p.email,r1,r2,bonus,total:round1(r1.pts+r2.pts+bonus.pts),rank:0};
+  });
+  const T=t=>t==null?Infinity:t;
+  const cmp=(a,b)=>(b.total-a.total)||(b.r1.pts-a.r1.pts)||(T(a.r1.time)-T(b.r1.time)||0)||(b.r2.pts-a.r2.pts);
+  rows.sort((a,b)=>cmp(a,b)||a.name.localeCompare(b.name));
+  rows.forEach((r,i)=>{ r.rank=i===0?1:(cmp(rows[i-1],r)===0?rows[i-1].rank:i+1); });
+  const base=(cfg.r1.weight||0)+(cfg.r2.weight||0);
+  return {rows,base,maxTotal:(base+(cap||0))||1};
+}
+function rosterAdd(state,table,map){
+  const s=clone(state), idx=indexPeople(s.people); let added=0,existing=0,skipped=0;
+  table.rows.forEach(r=>{
+    const g=k=>(map[k]!=null&&map[k]>=0)?String(r[map[k]]==null?'':r[map[k]]).trim():'';
+    const file={name:g('name'),email:g('email'),ext:g('id')};
+    if(!file.name&&!file.email&&!file.ext){ skipped++; return; }
+    const e=normEmail(file.email), x=normEmail(file.ext), n=normName(file.name);
+    let pid=(e&&idx.byEmail[e])||(x&&idx.byExt[x])||null;
+    if(!pid&&!e&&!x&&n&&idx.byName[n]&&idx.byName[n].length===1) pid=idx.byName[n][0];
+    if(pid){
+      const p=s.people[pid];
+      if(!p.email&&file.email) p.email=file.email;
+      if(!p.ext&&file.ext) p.ext=file.ext;
+      if((!p.name||p.name===p.ext)&&file.name) p.name=file.name;
+      existing++; return;
+    }
+    pid='p_'+uid();
+    s.people[pid]={id:pid,name:file.name||(file.email?file.email.split('@')[0]:file.ext),email:file.email,ext:file.ext,dq:false};
+    if(e) idx.byEmail[e]=pid; if(x) idx.byExt[x]=pid; if(n) (idx.byName[n]=idx.byName[n]||[]).push(pid);
+    added++;
+  });
+  return {state:s,added,existing,skipped};
+}
+function ranksOf(board){ const o={}; board.rows.forEach(r=>{ o[r.id]=r.rank; }); return o; }
+function stageText(state){
+  if(state.config.stageOverride) return state.config.stageOverride;
+  if(state.bonus.some(b=>!b.void)) return state.config.bonus.name+': points are live';
+  if(Object.keys(state.scores.r2).length) return 'Standings after the '+state.config.r2.name+' round';
+  if(Object.keys(state.scores.r1).length) return 'Standings after the '+state.config.r1.name+' round';
+  return 'Results appear here as each round is scored';
+}
+function parseQuick(t){ return String(t).split(/[\s,;]+/).map(Number).filter(n=>isFinite(n)&&n!==0); }
+
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return((t^t>>>14)>>>0)/4294967296; }; }
+function samplePeople(){
+  const first=['Aarav','Diya','Vivaan','Ananya','Kabir','Ishita','Rohan','Meera','Arjun','Saanvi','Dev','Navya','Reyansh','Tanvi','Ishaan','Kavya','Aditya','Riya','Krish','Sneha','Harsh','Pooja','Nikhil','Aisha','Varun','Lakshmi','Siddharth','Bhavya','Karthik','Mahi','Tejas','Anika','Pranav','Nisha','Yash','Divya'];
+  const last=['Sharma','Reddy','Rao','Patel','Naidu','Iyer','Gupta','Varma','Menon','Singh','Das','Kumar'];
+  return first.map((f,i)=>{ const l=last[i%last.length]; return {first:f,last:l,name:f+' '+l,email:(f+'.'+l).toLowerCase()+'@example.edu',id:'HW-'+String(i+1).padStart(3,'0')}; });
+}
+function makeSample(kind){
+  const P=samplePeople(), rnd=mulberry32(kind==='r1'?11:23);
+  const hms=s=>[Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(n=>String(n).padStart(2,'0')).join(':');
+  if(kind==='r1'){
+    const rows=[['Candidate Name','Email','Score','Time Taken','Window Exits']];
+    P.forEach((p,i)=>{
+      let score=String(Math.min(300,Math.round(Math.pow(rnd(),1.5)*60)*5)); const secs=1200+Math.round(rnd()*3600); let time=hms(secs);
+      if(i===5){ score=''; time=''; }
+      if(i===11) score='Absent';
+      if(i===17) score='330';
+      rows.push([p.name,p.email,score,time,String(Math.floor(rnd()*4))]);
+      if(i===8) rows.push([p.name,p.email,String(Math.round(rnd()*20)*5),hms(secs+600),'1']);
+    });
+    return toCSV(rows);
+  }
+  const rows=[['participant_id','name','email','score','max_score','time_taken_sec']];
+  P.forEach((p,i)=>{
+    if(i===20) return;
+    let score=String(Math.round(Math.pow(rnd(),0.7)*30)), name=p.name, email=p.email; const secs=300+Math.round(rnd()*900);
+    if(i===3) email=email.replace('example','exmaple');
+    if(i===14){ name=p.first+' '+p.last[0]+'.'; email=email.replace('example','exampel'); }
+    if(i===25) score='35';
+    rows.push([p.id,name,email,score,'30',String(secs)]);
+  });
+  rows.push(['HW-999','Guest Participant','guest@outside.org','12','30','640']);
+  return toCSV(rows);
+}
+// </LOGIC>
+
+/* =========================================================
+   Everything below is interface code
+   ========================================================= */
+const MODE=location.hash==='#display'?'screen':'admin';
+const reduce=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);
+const fmt=n=>n==null?'–':(Math.abs(n-Math.round(n))<1e-9?String(Math.round(n)):n.toFixed(1));
+const sign=n=>(n>0?'+':'')+fmt(n);
+const safeParse=t=>{ try{ return t?JSON.parse(t):null; }catch(e){ return null; } };
+
+const STORE_KEY='hackoween.state.v1', HIST_KEY='hackoween.history.v1';
+const mem={};
+const store={
+  get(k){ try{ return localStorage.getItem(k); }catch(e){ return mem[k]==null?null:mem[k]; } },
+  set(k,v){ try{ localStorage.setItem(k,v); }catch(e){ mem[k]=v; } }
+};
+let storageOk=true;
+try{ localStorage.setItem('hackoween.probe','1'); storageOk=localStorage.getItem('hackoween.probe')==='1'; localStorage.removeItem('hackoween.probe'); }catch(e){ storageOk=false; }
+let state=normalizeState(safeParse(store.get(STORE_KEY)));
+let bc=null; try{ bc=new BroadcastChannel('hackoween'); }catch(e){}
+
+function persist(){
+  state.rev=(state.rev||0)+1;
+  store.set(STORE_KEY,JSON.stringify(state));
+  try{ bc&&bc.postMessage({rev:state.rev}); }catch(e){}
+  const s=$('#saved'); if(s) s.textContent='Saved '+new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  renderAll();
+}
+function reloadFromStore(){
+  const s=safeParse(store.get(STORE_KEY)); if(!s) return;
+  if((s.rev||0)!==(state.rev||0)){ state=normalizeState(s); renderAll(); }
+}
+window.addEventListener('storage',e=>{ if(e.key===STORE_KEY) reloadFromStore(); });
+if(bc) bc.onmessage=()=>reloadFromStore();
+if(MODE==='screen') setInterval(reloadFromStore,2000);
+
+function snapshot(label){
+  const h=safeParse(store.get(HIST_KEY))||[];
+  h.unshift({ts:Date.now(),label,state});
+  let keep=h.slice(0,8);
+  try{ store.set(HIST_KEY,JSON.stringify(keep)); }catch(e){}
+}
+let toastT;
+function toast(msg,kind){ const t=$('#toast'); t.textContent=msg; t.className='show '+(kind||''); clearTimeout(toastT); toastT=setTimeout(()=>{ t.className=''; },3800); }
+function download(name,text,type){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([text],{type:type||'text/plain'})); a.download=name; document.body.appendChild(a); a.click(); setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); },500); }
+const timeStr=ts=>new Date(ts).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+
+const MARK='<svg class="mark" viewBox="0 0 72 72" role="img" aria-label="Jack-o\'-lantern"><path d="M34 12c1-6 5-9 11-9v5c-4 0-5 2-5 5z" fill="#5CF2C0"/><ellipse cx="36" cy="42" rx="30" ry="24" fill="#FF8A1F"/><path d="M36 18c-9 7-9 41 0 48M36 18c9 7 9 41 0 48M20 22c-11 8-9 36 4 43M52 22c11 8 9 36-4 43" fill="none" stroke="#C9560A" stroke-width="2.4" stroke-linecap="round"/><path d="M25 35l-7 5 7 5M47 35l7 5-7 5" fill="none" stroke="#170E2B" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M24 53l5 4 7-4 7 4 5-4" fill="none" stroke="#170E2B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function titleHTML(name){
+  const plain=String(name||'').toLowerCase().replace(/[^a-z]/g,'');
+  if(plain==='hackoween') return '<span>Hack</span><span class="hy">-</span>'+MARK+'<span class="hy">-</span><span>Ween</span>';
+  return MARK+'<span>'+esc(name)+'</span>';
+}
+
+/* ---------- events ---------- */
+const A={},C={},I={};
+document.addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); if(t&&A[t.dataset.act]) A[t.dataset.act](t,e); });
+document.addEventListener('change',e=>{ const t=e.target.closest('[data-chg]'); if(t&&C[t.dataset.chg]) C[t.dataset.chg](t,e); });
+document.addEventListener('input',e=>{ const t=e.target.closest('[data-inp]'); if(t&&I[t.dataset.inp]) I[t.dataset.inp](t,e); });
+
+/* ---------- routing ---------- */
+const TABS=[['leaderboard','Leaderboard'],['import','Import results'],['final','Final round'],['screen','Screen'],['settings','Settings']];
+function drawTabs(){ $('#tabs').innerHTML=TABS.map(t=>'<a class="tab" href="#'+t[0]+'"'+(t[0]===tab?' aria-current="page"':'')+'>'+(t[0]==='final'?(state.config.bonus.name||t[1]):t[1])+'</a>').join(''); }
+let tab='leaderboard';
+const hashTab=()=>location.hash.replace(/^#/,'');
+function initAdmin(){
+  $('#app').innerHTML=(storageOk?'':'<div class="warnbar" role="alert"><b>This browser is not saving data.</b> Open this file in Chrome or Edge, or download a backup from Settings after every round. A refresh will erase everything.</div>')+'<header class="top"><div class="brand">'+MARK+'<span>Scoreboard</span></div><nav class="tabs" id="tabs"></nav><span id="saved"></span></header><main id="view"></main>';
+  window.addEventListener('hashchange',()=>{ if(hashTab()==='display') location.reload(); else route(); });
+  route();
+}
+function route(){
+  const h=hashTab(); tab=TABS.some(t=>t[0]===h)?h:'leaderboard';
+  drawTabs();
+  const v=$('#view'); v.scrollTop=0; window.scrollTo(0,0);
+  ({leaderboard:viewLeaderboard,import:viewImport,final:viewFinal,screen:viewScreen,settings:viewSettings})[tab](v);
+}
+function renderAll(){
+  if(MODE==='screen'){ renderDisplay($('#screenRoot')); return; }
+  if(tab==='leaderboard') renderLeaderboardSafe();
+  else if(tab==='final') renderFinalDynamic();
+  else if(tab==='screen') renderDisplay($('#screenEmbed'));
+}
+
+/* =========================================================
+   Leaderboard tab
+   ========================================================= */
+function viewLeaderboard(v){
+  v.innerHTML='<div class="pagehead"><div><h1>Leaderboard</h1><p class="sub">Raw scores here are editable. Points are recalculated from the scaling in Settings, so every change shows up on the screen straight away.</p></div><div class="row-actions"><button class="btn primary" data-act="openRoster">Add participants from a list</button><button class="btn" data-act="addPerson">Add one participant</button></div></div><div class="chips" id="lbStatus"></div><div id="lbTable"></div><div id="lbDq"></div>';
+  renderLeaderboard();
+}
+let lbPending=false;
+function renderLeaderboardSafe(){
+  const host=$('#lbTable'), ae=document.activeElement;
+  if(host&&ae&&ae.tagName==='INPUT'&&host.contains(ae)){ lbPending=true; return; }
+  lbPending=false; renderLeaderboard();
+}
+document.addEventListener('focusout',e=>{
+  if(!lbPending||tab!=='leaderboard') return;
+  const host=$('#lbTable'); if(host&&!host.contains(e.relatedTarget)) setTimeout(()=>{ if(lbPending) renderLeaderboardSafe(); },0);
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.matches&&e.target.matches('input[data-chg="rawEdit"]')) e.target.blur(); });
+function renderLeaderboard(){
+  const host=$('#lbTable'); if(!host) return;
+  const b=computeBoard(state), c=state.config;
+  $('#lbStatus').innerHTML=[
+    esc(c.r1.name)+': '+Object.keys(state.scores.r1).length+' scores',
+    esc(c.r2.name)+': '+Object.keys(state.scores.r2).length+' scores',
+    esc(c.bonus.name)+': '+state.bonus.filter(x=>!x.void).length+' awards',
+    b.rows.length+' participants'
+  ].map(t=>'<span class="chip2">'+t+'</span>').join('');
+  if(!b.rows.length){
+    host.innerHTML='<div class="emptybox"><p><b>No participants yet.</b></p><p>Add your sign-up list first, so every round matches people by their HackerRank username. Or import the coding results and create people from them.</p><p class="row-actions" style="justify-content:center"><button class="btn primary" data-act="openRoster">Add participants from a list</button><a class="btn" href="#import">Import results</a></p></div>';
+  } else {
+    host.innerHTML='<div class="tablewrap"><table class="lb"><thead><tr><th>Rank</th><th>Participant</th><th>'+esc(c.r1.name)+'<small>raw score, then points of '+fmt(c.r1.weight)+'</small></th><th>'+esc(c.r2.name)+'<small>raw score, then points of '+fmt(c.r2.weight)+'</small></th><th>'+esc(c.bonus.name)+'<small>points awarded</small></th><th>Total</th><th></th></tr></thead><tbody>'+
+    b.rows.map(r=>'<tr><td class="rk">'+r.rank+'</td><td class="who"><b>'+esc(r.name)+'</b><span class="em">'+esc(r.email)+'</span></td>'+
+      scoreCell('r1',r)+scoreCell('r2',r)+
+      '<td>'+(r.bonus.count?sign(r.bonus.raw)+(r.bonus.capped?' <span class="em">(capped at '+fmt(c.bonus.cap)+')</span>':''):'<span class="dim">–</span>')+'</td>'+
+      '<td class="tot">'+fmt(r.total)+'</td><td><button class="mini" data-act="editPerson" data-pid="'+r.id+'">Edit</button></td></tr>').join('')+'</tbody></table></div>';
+  }
+  const dq=Object.values(state.people).filter(p=>p.dq);
+  $('#lbDq').innerHTML=dq.length?'<h3>Disqualified ('+dq.length+')</h3><p class="dim">Hidden from the leaderboard and the screen, and ignored when scaling.</p>'+dq.map(p=>'<p>'+esc(p.name)+' <button class="mini" data-act="dqToggle" data-pid="'+p.id+'">Restore</button></p>').join(''):'';
+}
+function scoreCell(key,r){
+  const s=r[key];
+  return '<td class="sc"><input class="num'+(s.edited?' edited':'')+'" inputmode="decimal" value="'+(s.raw==null?'':fmt(s.raw))+'" placeholder="–" data-chg="rawEdit" data-round="'+key+'" data-pid="'+r.id+'" aria-label="'+esc(state.config[key].name)+' score for '+esc(r.name)+'"'+(s.edited?' title="Edited by hand"':'')+'><span class="pts"'+(s.time!=null?' title="Time '+fmtTime(s.time)+'"':'')+'>'+(s.raw==null?'':'→ '+fmt(s.pts))+'</span>'+(s.adj<0?'<span class="em" title="Speed adjustment from solve time"> ('+fmt(s.adj)+' for time)</span>':'')+'</td>';
+}
+C.rawEdit=el=>{
+  const key=el.dataset.round,pid=el.dataset.pid,txt=el.value.trim();
+  if(txt===''){ delete state.scores[key][pid]; persist(); return; }
+  const sc=parseScore(txt);
+  if(sc.value==null||sc.value<0){ toast('Scores need to be numbers, 0 or higher.','bad'); lbPending=false; renderLeaderboard(); return; }
+  const old=state.scores[key][pid];
+  state.scores[key][pid]={raw:sc.value,time:old?old.time:null,edited:true};
+  const mx=state.config[key].max; if(mx>0&&sc.value>mx) toast('That is above the maximum of '+mx+'. It counts as full marks.');
+  persist();
+};
+function openPerson(pid){
+  const p=pid?state.people[pid]:null, d=$('#dlg');
+  d.innerHTML='<form id="pf"><h2>'+(p?'Edit participant':'Add participant')+'</h2>'+
+    '<label class="fld">Name<input name="name" required value="'+esc(p?p.name:'')+'"></label>'+
+    '<label class="fld">Email<input name="email" value="'+esc(p?p.email:'')+'"><small>Used to match this person across rounds.</small></label>'+
+    '<label class="fld">Participant ID (optional)<input name="ext" value="'+esc(p?p.ext||'':'')+'"></label>'+
+    '<div class="dlg-actions"><button class="btn primary" value="save">Save</button><button class="btn" value="cancel" formnovalidate>Cancel</button>'+
+    (p?'<button type="button" class="btn warn" data-act="dqToggle" data-pid="'+pid+'">'+(p.dq?'Restore to leaderboard':'Disqualify')+'</button><button type="button" class="btn danger" data-act="delPerson" data-pid="'+pid+'">Delete</button>':'')+
+    '</div></form>';
+  d.showModal();
+  $('#pf').addEventListener('submit',e=>{
+    e.preventDefault();
+    if(e.submitter&&e.submitter.value==='cancel'){ d.close(); return; }
+    const f=new FormData(e.target), name=String(f.get('name')).trim(), email=String(f.get('email')).trim(), ext=String(f.get('ext')).trim();
+    if(!name) return;
+    const clash=Object.values(state.people).find(o=>o.id!==pid&&email&&normEmail(o.email)===normEmail(email));
+    if(clash){ toast('Another participant already uses that email.','bad'); return; }
+    if(p){ Object.assign(p,{name,email,ext}); }
+    else { const id='p_'+uid(); state.people[id]={id,name,email,ext,dq:false}; }
+    d.close(); persist();
+  });
+}
+A.addPerson=()=>openPerson(null);
+A.editPerson=el=>openPerson(el.dataset.pid);
+A.dqToggle=el=>{ const p=state.people[el.dataset.pid]; if(!p) return; p.dq=!p.dq; if($('#dlg').open) $('#dlg').close(); persist(); toast(p.name+(p.dq?' is disqualified and hidden.':' is back on the leaderboard.')); };
+A.delPerson=el=>{
+  if(el.dataset.armed!=='1'){ el.dataset.armed='1'; el.textContent='Click again to delete for good'; return; }
+  const pid=el.dataset.pid; delete state.people[pid]; delete state.scores.r1[pid]; delete state.scores.r2[pid]; state.bonus=state.bonus.filter(b=>b.pid!==pid);
+  $('#dlg').close(); persist();
+};
+
+/* ----- roster: add participants from a sign-up list ----- */
+let roster={table:null,map:{}};
+A.openRoster=()=>{
+  roster={table:null,map:{}};
+  const d=$('#dlg');
+  d.innerHTML='<div class="dlgbody"><h2>Add participants from a list</h2><p class="dim">Paste your sign-up list with its header row, or choose a CSV. It needs a name or email, and ideally the HackerRank username so the coding results match on their own.</p>'+
+    '<textarea id="rosterText" rows="6" spellcheck="false" data-inp="rosterText" placeholder="Name, Email, HackerRank username"></textarea>'+
+    '<p><label class="btn">Choose a CSV file<input type="file" accept=".csv,.tsv,.txt" hidden data-chg="rosterFile"></label></p><div id="rosterMap"></div><p id="rosterInfo" class="dim"></p>'+
+    '<div class="dlg-actions"><button class="btn primary" id="rosterGo" data-act="rosterGo" disabled>Add them</button><button class="btn" data-act="rosterClose">Close</button></div></div>';
+  d.showModal(); $('#rosterText').focus(); rosterRender();
+};
+A.rosterClose=()=>$('#dlg').close();
+I.rosterText=el=>{
+  const rows=parseCSV(el.value);
+  if(rows.length>=2&&rows[0].length>=2){ const headers=rows[0].map(h=>String(h).trim()); roster.table={headers,rows:rows.slice(1).map(r=>headers.map((_,i)=>r[i]==null?'':String(r[i])))}; roster.map=guessColumns(headers); }
+  else roster.table=null;
+  rosterRender();
+};
+C.rosterFile=async el=>{ const f=el.files[0]; if(!f) return; $('#rosterText').value=await f.text(); I.rosterText($('#rosterText')); el.value=''; };
+C.rosterMap=el=>{ roster.map[el.dataset.field]=parseInt(el.value,10); rosterRender(); };
+function rosterRender(){
+  const mapEl=$('#rosterMap'), info=$('#rosterInfo'), go=$('#rosterGo'); if(!mapEl) return;
+  if(!roster.table){ mapEl.innerHTML=''; info.textContent='Paste at least a header row and one person.'; go.disabled=true; return; }
+  const H=roster.table.headers;
+  const sel=(f,l)=>'<label class="fld">'+l+'<select data-chg="rosterMap" data-field="'+f+'"><option value="-1">Not in this list</option>'+H.map((h,i)=>'<option value="'+i+'"'+(roster.map[f]===i?' selected':'')+'>'+esc(h||'(blank header)')+'</option>').join('')+'</select></label>';
+  mapEl.innerHTML='<div class="mapgrid">'+sel('name','Name')+sel('email','Email')+sel('id','HackerRank username')+'</div>';
+  const any=roster.map.name>=0||roster.map.email>=0||roster.map.id>=0;
+  const r=any?rosterAdd(state,roster.table,roster.map):null;
+  info.textContent=r?(r.added+' new, '+r.existing+' already on the list'+(r.skipped?', '+r.skipped+' empty rows ignored':'')+'.'):'Pick at least one column.';
+  go.disabled=!(r&&(r.added+r.existing)>0);
+}
+A.rosterGo=()=>{
+  const r=rosterAdd(state,roster.table,roster.map);
+  snapshot('Before adding participants'); state=r.state; $('#dlg').close(); persist();
+  toast(r.added+' participants added'+(r.existing?', '+r.existing+' were already there':'')+'.');
+};
+A.preset=el=>{
+  const a=el.dataset.p==='a', c=state.config;
+  Object.assign(c.r1,{name:'Coding',weight:400,mode:'max',max:100,timePct:c.r1.timePct>0?c.r1.timePct:10});
+  Object.assign(c.r2,{name:'Quiz',weight:a?400:500,mode:'max'});
+  Object.assign(c.bonus,{name:'Logo round',cap:a?200:100});
+  c.quick=a?[20,10,-5]:[10,5,-5];
+  persist(); drawTabs(); viewSettings($('#view'));
+  toast(a?'Set to 40% coding, 40% quiz, 20% logo round.':'Set to 40% coding, 50% quiz, 10% logo round.');
+};
+
+/* =========================================================
+   Import tab
+   ========================================================= */
+let imp=null;
+function newImp(round){
+  const c=state.config[round];
+  return {round,step:'upload',fileName:'',table:null,map:{},timeUnit:'sec',max:c.max==null?'':c.max,mode:c.mode,timePct:c.timePct?c.timePct:'',timeLimit:c.timeLimit==null?'':c.timeLimit,rows:[],filter:'all',missing:{},doneInfo:null,jump:0};
+}
+function viewImport(){ if(!imp) imp=newImp('r1'); renderImport(); }
+const maxNum=()=>{ const m=parseFloat(imp.max); return m>0?m:null; };
+const impPatch=()=>({max:maxNum(),mode:imp.mode,timePct:Math.max(0,Math.min(100,parseFloat(imp.timePct)||0)),timeLimit:parseFloat(imp.timeLimit)>0?parseFloat(imp.timeLimit):null});
+const rowById=id=>imp.rows.find(r=>r.id===id);
+function reRender(){ const y=window.scrollY; renderImport(); window.scrollTo(0,y); }
+
+function renderImport(){
+  if(tab!=='import') return;
+  const v=$('#view');
+  v.innerHTML='<div class="pagehead"><div><h1>Import results</h1><p class="sub">One round at a time. Nothing reaches the leaderboard until you have reviewed every row and pressed import.</p></div></div>'+
+    (imp.step==='upload'?roundPicker():'<p class="dim" style="margin-bottom:1rem">Importing the <b>'+esc(state.config[imp.round].name)+'</b> round'+(imp.fileName?' from <b>'+esc(imp.fileName)+'</b>':'')+'. <button class="mini" data-act="impReset">Start over</button></p>')+
+    ({upload:stepUpload,map:stepMap,review:stepReview,done:stepDone})[imp.step]();
+  if(imp.step==='upload') wireUpload();
+}
+function roundPicker(){
+  return '<div class="rounds">'+['r1','r2'].map(k=>{
+    const n=Object.keys(state.scores[k]).length;
+    return '<button class="roundbtn" data-act="impRound" data-round="'+k+'" aria-pressed="'+(imp.round===k)+'"><b>'+esc(state.config[k].name)+' round</b><span class="em">'+(n?n+' scores imported':'Not imported yet')+'</span></button>';
+  }).join('')+'</div>';
+}
+function stepUpload(){
+  const n=Object.keys(state.scores[imp.round]).length;
+  return '<section class="panel"><div class="drop" id="drop"><p class="big">Drop the '+esc(state.config[imp.round].name)+' results file here</p><p class="dim">CSV works offline. Excel (.xlsx) works while this page is online, otherwise save the sheet as CSV first.</p><p><label class="btn primary">Choose file<input type="file" id="file" accept=".csv,.tsv,.txt,.xlsx,.xls" hidden></label></p></div>'+
+    '<details><summary>Or paste rows copied from a spreadsheet</summary><p class="dim">Include the header row.</p><textarea id="paste" rows="6" spellcheck="false"></textarea><div class="actions"><button class="btn" data-act="usePaste">Use pasted rows</button></div></details>'+
+    '<p class="dim" style="margin-top:1rem">'+(n?'This round already has '+n+' scores. Importing replaces all of them.':'This round has no scores yet.')+'</p></section>';
+}
+function wireUpload(){
+  const drop=$('#drop'), file=$('#file');
+  file.addEventListener('change',()=>{ if(file.files[0]) loadFile(file.files[0]); });
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{ e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop',e=>{ const f=e.dataTransfer.files[0]; if(f) loadFile(f); });
+}
+async function loadFile(file){
+  try{
+    let rows;
+    if(/\.(xlsx|xls)$/i.test(file.name)){
+      if(!window.XLSX){ toast('Excel files need this page online once. Save the sheet as CSV instead.','bad'); return; }
+      const wb=XLSX.read(await file.arrayBuffer(),{type:'array'});
+      rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,raw:false,defval:''}).filter(r=>r.some(c=>String(c).trim()!==''));
+    } else rows=parseCSV(await file.text());
+    startMapping(rows,file.name);
+  }catch(err){ toast('Could not read that file: '+err.message,'bad'); }
+}
+function startMapping(rows,name){
+  if(rows.length<2){ toast('The file needs a header row and at least one row of results.','bad'); return; }
+  if(rows[0].length<2){ toast('That came out as a single column, so the table layout was lost. Paste it into a spreadsheet first, or type the scores in on the Leaderboard tab.','bad'); return; }
+  const headers=rows[0].map(h=>String(h).trim());
+  imp.table={headers,rows:rows.slice(1).map(r=>headers.map((_,i)=>r[i]==null?'':String(r[i])))};
+  imp.fileName=name; imp.map=guessColumns(headers);
+  if(imp.map.max>=0){ const m=Math.max.apply(null,imp.table.rows.map(r=>parseFloat(r[imp.map.max])).filter(isFinite)); if(isFinite(m)) imp.max=m; }
+  imp.step='map'; renderImport();
+}
+function stepMap(){
+  const H=imp.table.headers, m=imp.map;
+  const sel=(field,label,hint)=>'<label class="fld">'+label+'<select data-chg="impMap" data-field="'+field+'"><option value="-1">Not in this file</option>'+H.map((h,i)=>'<option value="'+i+'"'+(m[field]===i?' selected':'')+'>'+esc(h||'(blank header)')+'</option>').join('')+'</select><small>'+hint+'</small></label>';
+  const ok=m.score>=0&&(m.email>=0||m.name>=0||m.id>=0);
+  const modes=[['max','Share of the maximum score'],['top','Share of the top scorer'],['pct','Percentile rank']];
+  const modeHint={max:'Points = weight × score ÷ maximum. Fair when scores spread out.',top:'Points = weight × score ÷ best score in this file. Use it when everyone scored low.',pct:'Points follow rank only, not marks. Zero scores earn nothing.'}[imp.mode];
+  return '<section class="panel"><h2>Match the columns</h2><p>'+esc(imp.fileName)+' has '+imp.table.rows.length+' rows. These are my guesses from the headers. Fix any that are wrong.</p>'+
+    '<div class="mapgrid">'+sel('email','Email','Best way to match people across rounds')+sel('name','Name','Used when the email does not match')+sel('id','Participant ID','Optional')+sel('score','Score','Required')+sel('time','Time taken','Optional, breaks ties')+sel('max','Maximum score column','Optional')+'</div>'+
+    '<div class="roundcfg"><h3>Scaling for the '+esc(state.config[imp.round].name)+' round (worth '+fmt(state.config[imp.round].weight)+' points)</h3><div class="mapgrid">'+
+    '<label class="fld">Maximum possible score<input type="number" min="0" step="any" value="'+esc(imp.max)+'" data-chg="impOpt" data-key="max" placeholder="e.g. 300"><small>Rows above this are flagged.</small></label>'+
+    '<label class="fld">Scaling<select data-chg="impOpt" data-key="mode">'+modes.map(x=>'<option value="'+x[0]+'"'+(imp.mode===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')+'</select><small>'+modeHint+'</small></label>'+
+    '<label class="fld">Plain numbers in the time column are<select data-chg="impOpt" data-key="timeUnit"><option value="sec"'+(imp.timeUnit==='sec'?' selected':'')+'>Seconds</option><option value="min"'+(imp.timeUnit==='min'?' selected':'')+'>Minutes</option></select><small>hh:mm:ss is read automatically.</small></label>'+
+    '<label class="fld">Speed penalty (% of the round)<input type="number" min="0" max="100" step="any" value="'+esc(imp.timePct)+'" data-chg="impOpt" data-key="timePct" placeholder="0 = off"><small>The most the slowest solve can lose. Slower solves lose proportionally more. Needs a time column.</small></label>'+
+    '<label class="fld">Slowest time counted (minutes)<input type="number" min="0" step="any" value="'+esc(imp.timeLimit)+'" data-chg="impOpt" data-key="timeLimit" placeholder="e.g. 120"><small>Usually the length of the round. This time or slower takes the full penalty.</small></label></div></div>'+
+    '<h3>First rows of the file</h3><div class="tablewrap sample"><table><thead><tr>'+H.map(h=>'<th>'+esc(h)+'</th>').join('')+'</tr></thead><tbody>'+imp.table.rows.slice(0,3).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>'+
+    '<div class="actions"><button class="btn" data-act="impBack">Back</button><button class="btn primary" data-act="impReview"'+(ok?'':' disabled')+'>Review rows</button>'+(ok?'':'<span class="dim">Pick a score column and at least one of email, name or ID.</span>')+'</div></section>';
+}
+C.impMap=el=>{ imp.map[el.dataset.field]=parseInt(el.value,10); renderImport(); };
+C.impOpt=el=>{ imp[el.dataset.key]=el.value; renderImport(); };
+A.impRound=el=>{ imp=newImp(el.dataset.round); renderImport(); };
+A.impReset=()=>{ imp=newImp(imp.round); renderImport(); };
+A.impBack=()=>{ imp.step=imp.step==='review'?'map':'upload'; renderImport(); };
+A.usePaste=()=>{ const t=$('#paste').value; if(!t.trim()){ toast('Paste some rows first.','bad'); return; } startMapping(parseCSV(t),'pasted rows'); };
+A.impReview=()=>{
+  imp.rows=buildReviewRows(imp.table,imp.map,imp.timeUnit,state);
+  const an=analyzeRows(imp.rows,state,maxNum());
+  imp.rows.forEach(r=>{ r.order=({bad:0,warn:1}[an[r.id].sev]!=null?{bad:0,warn:1}[an[r.id].sev]:2)*100000+r.order; });
+  imp.rows.sort((a,b)=>a.order-b.order);
+  imp.missing={}; imp.filter='all'; imp.step='review'; renderImport(); window.scrollTo(0,0);
+};
+
+/* ----- review step ----- */
+function countRows(){
+  const an=analyzeRows(imp.rows,state,maxNum()); imp._an=an;
+  const c={total:imp.rows.length,bad:0,warn:0,new:0,ok:0,skip:0,edited:0};
+  imp.rows.forEach(r=>{
+    const a=an[r.id];
+    if(a.sev==='skip') c.skip++; else if(a.sev==='bad') c.bad++; else if(a.sev==='warn') c.warn++; else if(r.assign.type==='new') c.new++; else c.ok++;
+    if(isEdited(r)) c.edited++;
+  });
+  return c;
+}
+function isEdited(r){ return r.scoreText!==r.origScoreText||r.timeText!==r.origTimeText||r.how==='manual'||(r.assign.type==='new'&&(r.newName!==r.file.name||r.newEmail!==r.file.email)); }
+function stepReview(){
+  const c=countRows(), an=imp._an, hasTime=imp.map.time>=0;
+  const rowsHTML=imp.rows.filter(r=>passFilter(r,an[r.id])).map(r=>reviewRow(r,an[r.id],hasTime)).join('');
+  return '<div class="review"><div><div class="filters" id="rvFilters">'+filtersHTML(c)+'</div>'+
+    '<div class="tablewrap"><table class="imp"><thead><tr><th>Line</th><th>Status</th><th>In the file</th><th>Participant</th><th>Score</th>'+(hasTime?'<th>Time</th>':'')+'</tr></thead><tbody>'+(rowsHTML||'<tr><td colspan="6" class="dim">No rows in this view.</td></tr>')+'</tbody></table></div>'+missingPanel()+'</div>'+
+    '<aside class="rv-side" id="rvSide">'+sideHTML(c)+'</aside></div>';
+}
+function passFilter(r,a){
+  switch(imp.filter){ case 'bad':return a.sev==='bad'; case 'warn':return a.sev==='warn'; case 'new':return r.assign.type==='new'&&a.sev!=='skip'; case 'skip':return a.sev==='skip'; case 'edited':return isEdited(r); default:return true; }
+}
+function filtersHTML(c){
+  const f=[['all','All rows',c.total],['bad','Need fixing',c.bad],['warn','Double-check',c.warn],['new','New people',c.new],['skip','Skipped',c.skip],['edited','Edited by hand',c.edited]];
+  return f.map(x=>'<button data-act="impFilter" data-f="'+x[0]+'" aria-pressed="'+(imp.filter===x[0])+'">'+x[1]+' ('+x[2]+')</button>').join('')+'<span class="sp"></span><button data-act="impResort">Sort problems to top</button>';
+}
+function reviewRow(r,a,hasTime){
+  return '<tr class="r '+a.sev+(r.assign.type==='new'&&a.sev!=='skip'?' isnew':'')+'" data-row="'+r.id+'"><td class="ln">'+r.line+'</td><td class="st">'+statusHTML(r,a)+'</td><td class="fl">'+fileCell(r)+'</td><td class="as">'+assignCell(r,a)+'</td>'+
+    '<td><input class="num'+(r.scoreText!==r.origScoreText?' edited':'')+'" inputmode="decimal" value="'+esc(r.scoreText)+'" data-inp="impScore" data-row="'+r.id+'" aria-label="Score for line '+r.line+'"></td>'+
+    (hasTime?'<td><input class="num time'+(r.timeText!==r.origTimeText?' edited':'')+'" value="'+esc(r.timeText)+'" data-inp="impTime" data-row="'+r.id+'" aria-label="Time for line '+r.line+'"></td>':'')+'</tr>';
+}
+function statusHTML(r,a){
+  let label,cls=a.sev;
+  if(a.sev==='bad') label='Fix this'; else if(a.sev==='warn') label='Double-check'; else if(a.sev==='skip') label='Skipped'; else if(r.assign.type==='new'){ label='New participant'; cls='new'; } else label='Ready';
+  let h='<span class="badge '+cls+'">'+label+'</span>';
+  a.issues.forEach(i=>{ h+='<span class="iss '+i.sev+'">'+esc(i.text)+'</span>'; });
+  if(r.assign.type==='pid'&&r.how==='name'&&!r.confirmed) h+='<div style="margin-top:.35rem"><button class="mini" data-act="confirmRow" data-row="'+r.id+'">Yes, that is them</button></div>';
+  if(a.sev!=='skip'&&isEdited(r)) h+='<span class="iss tag">Edited by hand</span>';
+  return h;
+}
+function fileCell(r){
+  if(r.assign.type==='new') return '<input class="ghost" value="'+esc(r.newName)+'" placeholder="Name" data-chg="impNew" data-field="newName" data-row="'+r.id+'" aria-label="Name for line '+r.line+'"><input class="ghost em" value="'+esc(r.newEmail)+'" placeholder="Email" data-chg="impNew" data-field="newEmail" data-row="'+r.id+'" aria-label="Email for line '+r.line+'">';
+  const who=r.file.name||r.file.ext||r.file.email||'(no name)';
+  const sub=[r.file.email,r.file.name?r.file.ext:''].filter(Boolean).join(' · ');
+  return '<b>'+esc(who)+'</b>'+(sub?'<div class="em">'+esc(sub)+'</div>':'');
+}
+function assignCell(r,a){
+  if(r.assign.type==='skip') return '<span class="dim">Not imported</span> <button class="mini" data-act="unskip" data-row="'+r.id+'">Undo</button>';
+  const full=a.sev==='bad'||a.sev==='warn'||r.changing;
+  if(r.assign.type==='new'&&!full) return '<span class="newtag">Creates a new participant</span> <button class="mini" data-act="changeRow" data-row="'+r.id+'">Change</button>';
+  if(r.assign.type==='pid'&&!full){ const p=state.people[r.assign.pid]; return '<b>'+esc(p?p.name:'?')+'</b> <button class="mini" data-act="changeRow" data-row="'+r.id+'">Change</button>'; }
+  const cur=r.assign.type==='pid'?'pid:'+r.assign.pid:r.assign.type||'';
+  const people=Object.values(state.people).sort((x,y)=>x.name.localeCompare(y.name));
+  const sg=new Set(r.sugg);
+  const opt=(v,l)=>'<option value="'+esc(v)+'"'+(cur===v?' selected':'')+'>'+esc(l)+'</option>';
+  let h='<select data-chg="assign" data-row="'+r.id+'" aria-label="Participant for line '+r.line+'">'+opt('','Choose a participant')+opt('new','Create new participant')+opt('skip','Skip this row');
+  if(r.sugg.length) h+='<optgroup label="Closest matches">'+r.sugg.map(id=>state.people[id]).filter(Boolean).map(p=>opt('pid:'+p.id,p.name+' ('+(p.email||'no email')+')')).join('')+'</optgroup>';
+  h+='<optgroup label="Everyone">'+people.filter(p=>!sg.has(p.id)).map(p=>opt('pid:'+p.id,p.name+' ('+(p.email||'no email')+')')).join('')+'</optgroup></select>';
+  if(r.assign.type==null&&r.sugg.length) h+='<div class="sugg">Closest:'+r.sugg.map(id=>state.people[id]).filter(Boolean).map(p=>'<button class="mini" data-act="impPick" data-row="'+r.id+'" data-pid="'+p.id+'">'+esc(p.name)+'</button>').join('')+'</div>';
+  return h;
+}
+function missingPanel(){
+  const assigned=new Set(imp.rows.filter(r=>r.assign.type==='pid').map(r=>r.assign.pid));
+  const list=Object.values(state.people).filter(p=>!assigned.has(p.id)&&!p.dq);
+  if(!list.length) return '';
+  return '<details class="panel missing"'+(list.length<=8?' open':'')+'><summary>'+list.length+' registered participants are not in this file</summary><p class="dim">They get no score for this round unless you type one here.</p><table>'+list.map(p=>'<tr><td>'+esc(p.name)+'</td><td class="em">'+esc(p.email)+'</td><td><input class="num" placeholder="score" value="'+esc((imp.missing[p.id]||{}).text||'')+'" data-inp="impMissing" data-pid="'+p.id+'" aria-label="Score for '+esc(p.name)+'"></td></tr>').join('')+'</table></details>';
+}
+function previewBoard(){
+  const eff=applyImport(state,imp.round,imp.rows,impPatch(),imp.missing);
+  return computeBoard(eff);
+}
+const hasAnyScores=()=>Object.keys(state.scores.r1).length+Object.keys(state.scores.r2).length+state.bonus.length>0;
+function sideHTML(c){
+  c=c||countRows();
+  const importable=c.total-c.skip, can=c.bad===0&&importable>0;
+  const now=hasAnyScores()?ranksOf(computeBoard(state)):{}, pb=previewBoard(), top=pb.rows.slice(0,8), existing=Object.keys(state.scores[imp.round]).length;
+  return '<h2>Ready to import?</h2><ul class="tally"><li class="bad"><b>'+c.bad+'</b> need fixing</li><li class="warn"><b>'+c.warn+'</b> to double-check</li><li class="new"><b>'+c.new+'</b> new participants</li><li class="ok"><b>'+c.ok+'</b> ready</li><li class="skip"><b>'+c.skip+'</b> skipped</li></ul>'+
+    '<button class="btn primary big" data-act="impCommit"'+(can?'':' disabled')+'>Import '+importable+' rows</button>'+
+    (c.bad?'<p class="needs">Fix the '+c.bad+' red '+(c.bad===1?'row':'rows')+' to continue.</p><button class="btn" data-act="nextBad">Jump to the next problem</button>':'')+
+    (existing?'<p class="dim" style="margin-top:.8rem">Replaces the '+existing+' scores already in the '+esc(state.config[imp.round].name)+' round.</p>':'')+
+    '<h3>Top '+top.length+' after this import</h3>'+(top.length?'<ol class="pv" style="list-style:none">'+top.map(r=>{ const was=now[r.id]; const d=was==null?null:was-r.rank; return '<li><span class="em">'+r.rank+'</span><span class="n">'+esc(r.name)+'</span><span class="'+(d>0?'up':d<0?'dn':'')+'">'+(d>0?'▲'+d:d<0?'▼'+(-d):'')+'</span><b>'+fmt(r.total)+'</b></li>'; }).join('')+'</ol>':'<p class="dim">Nothing to show yet.</p>');
+}
+function renderSide(){ const c=countRows(); const s=$('#rvSide'), f=$('#rvFilters'); if(s) s.innerHTML=sideHTML(c); if(f) f.innerHTML=filtersHTML(c); }
+function updateRowEl(r){
+  const an=analyzeRows(imp.rows,state,maxNum()); const a=an[r.id], tr=document.querySelector('tr[data-row="'+r.id+'"]'); if(!tr) return;
+  tr.className='r '+a.sev+(r.assign.type==='new'&&a.sev!=='skip'?' isnew':'');
+  tr.querySelector('.st').innerHTML=statusHTML(r,a);
+}
+I.impScore=el=>{ const r=rowById(el.dataset.row); r.scoreText=el.value; r.score=parseScore(el.value); el.classList.toggle('edited',r.scoreText!==r.origScoreText); updateRowEl(r); renderSide(); };
+I.impTime=el=>{ const r=rowById(el.dataset.row); r.timeText=el.value; r.time=parseTime(el.value,imp.timeUnit); el.classList.toggle('edited',r.timeText!==r.origTimeText); updateRowEl(r); };
+I.impMissing=el=>{ imp.missing[el.dataset.pid]={text:el.value}; renderSide(); };
+C.assign=el=>{
+  const r=rowById(el.dataset.row), v=el.value; r.changing=false;
+  if(v==='skip'){ r.prevAssign=r.assign; r.assign={type:'skip'}; }
+  else if(v==='new'){ r.assign={type:'new'}; r.how='manual'; }
+  else if(v.indexOf('pid:')===0){ r.assign={type:'pid',pid:v.slice(4)}; r.how='manual'; }
+  else r.assign={type:null};
+  reRender();
+};
+C.impNew=el=>{ rowById(el.dataset.row)[el.dataset.field]=el.value; reRender(); };
+A.changeRow=el=>{ rowById(el.dataset.row).changing=true; reRender(); };
+A.unskip=el=>{ const r=rowById(el.dataset.row); r.assign=r.prevAssign||{type:null}; reRender(); };
+A.confirmRow=el=>{ rowById(el.dataset.row).confirmed=true; reRender(); };
+A.impPick=el=>{ const r=rowById(el.dataset.row); r.assign={type:'pid',pid:el.dataset.pid}; r.how='manual'; reRender(); };
+A.impFilter=el=>{ imp.filter=el.dataset.f; reRender(); };
+A.impResort=()=>{
+  const an=analyzeRows(imp.rows,state,maxNum());
+  imp.rows.sort((a,b)=>{ const k=r=>({bad:0,warn:1}[an[r.id].sev]!=null?{bad:0,warn:1}[an[r.id].sev]:2); return k(a)-k(b)||a.line-b.line; });
+  reRender();
+};
+A.nextBad=()=>{
+  const els=[].slice.call(document.querySelectorAll('tr.r.bad')); if(!els.length) return;
+  const el=els[imp.jump%els.length]; imp.jump++;
+  el.scrollIntoView({block:'center',behavior:reduce?'auto':'smooth'});
+  const f=el.querySelector('select,input'); if(f) f.focus({preventScroll:true});
+};
+A.impCommit=()=>{
+  const c=countRows(); if(c.bad>0){ toast('Fix the red rows first.','bad'); return; }
+  const name=state.config[imp.round].name, n=c.total-c.skip;
+  snapshot('Before importing the '+name+' round');
+  const before=hasAnyScores()?ranksOf(computeBoard(state)):{};
+  const next=applyImport(state,imp.round,imp.rows,impPatch(),imp.missing);
+  next.checkpoint=before; next.last=null; next.rev=state.rev;
+  next.log=(state.log||[]).concat({ts:Date.now(),text:'Imported '+n+' rows into the '+name+' round'}).slice(-200);
+  state=next; imp.step='done'; imp.doneInfo={n,name};
+  persist(); renderImport();
+};
+function stepDone(){
+  const other=imp.round==='r1'?'r2':'r1';
+  return '<section class="panel done"><h2>'+imp.doneInfo.n+' rows imported into the '+esc(imp.doneInfo.name)+' round</h2><p>The leaderboard and the screen are already updated. Ranks that moved show arrows on the screen until the next import.</p><div class="actions"><a class="btn primary" href="#leaderboard">See the leaderboard</a><a class="btn" href="#screen">See the screen</a><button class="btn" data-act="impAnother" data-round="'+other+'">Import the '+esc(state.config[other].name)+' round</button></div></section>';
+}
+A.impAnother=el=>{ imp=newImp(el.dataset.round); renderImport(); };
+
+/* =========================================================
+   Final round tab
+   ========================================================= */
+let fSel=null,fQuery='';
+function viewFinal(v){
+  v.innerHTML='<div class="pagehead"><div><h1>'+esc(state.config.bonus.name)+'</h1><p class="sub">Find who answered first, then award points. Every award can be undone.</p></div></div>'+
+    '<div class="fgrid"><div class="stack"><section class="panel"><h2>Award points</h2>'+
+    '<label class="fld">Who answered first?<input id="fSearch" type="search" autocomplete="off" placeholder="Type a name or email, press Enter to pick the first match"></label><div id="fResults"></div>'+
+    '<div class="selected" id="fSelected"></div><div class="quick" id="fQuick"></div>'+
+    '<div class="customrow"><input id="fCustom" type="number" step="any" placeholder="Points" aria-label="Custom points"><input id="fNote" class="note" placeholder="Question or note (optional)" aria-label="Note"><button class="btn" data-act="awardCustom">Add custom points</button></div>'+
+    '<p class="dim" style="margin-top:.8rem">Pick a participant, then click a value or press its number key. Esc clears the pick.</p></section>'+
+    '<section class="panel"><h2>Finale reveal</h2><div id="fReveal"></div></section></div>'+
+    '<div class="stack"><section class="panel"><h2>Awards</h2><div class="row-actions" style="margin-bottom:.6rem"><button class="btn" data-act="undoLast">Undo last award</button></div><div id="fLog"></div></section>'+
+    '<section class="panel"><h2>Standings</h2><div id="fMini"></div></section></div></div>';
+  const s=$('#fSearch');
+  s.addEventListener('input',()=>{ fQuery=s.value; renderFinalDynamic(); });
+  s.addEventListener('keydown',e=>{ if(e.key==='Enter'){ const f=document.querySelector('#fResults .res'); if(f){ e.preventDefault(); pickPerson(f.dataset.pid); } } });
+  $('#fCustom').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); A.awardCustom(); } });
+  renderFinalDynamic(); s.focus();
+}
+function renderFinalDynamic(){
+  if(tab!=='final'||!$('#fResults')) return;
+  const board=computeBoard(state), cfg=state.config, byId={}; board.rows.forEach(r=>{ byId[r.id]=r; });
+  if(fSel&&!byId[fSel]) fSel=null;
+  const q=fQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  $('#fResults').innerHTML=q.length?(function(){ const hits=board.rows.filter(r=>{ const hay=(r.name+' '+r.email).toLowerCase(); return q.every(t=>hay.indexOf(t)>=0); }).slice(0,8); return hits.length?hits.map(r=>'<button class="res" data-act="pick" data-pid="'+r.id+'"><span><b>'+esc(r.name)+'</b></span><span class="em">'+esc(r.email)+'</span><span class="bn">'+(r.bonus.count?sign(r.bonus.raw):'')+'</span></button>').join(''):'<p class="dim">No one matches that.</p>'; })():'<p class="dim" style="margin-top:.4rem">Start typing to find a participant.</p>';
+  const sel=fSel?byId[fSel]:null;
+  $('#fSelected').innerHTML=sel?'<b>'+esc(sel.name)+'</b><span class="dim">bonus so far '+sign(sel.bonus.raw)+(cfg.bonus.cap>0?' of '+fmt(cfg.bonus.cap)+' max':'')+'</span><button class="mini" data-act="clearPick">Clear</button>':'<span class="dim">No one picked yet.</span>';
+  $('#fQuick').innerHTML=cfg.quick.map((v,i)=>'<button class="q'+(v<0?' neg':'')+'" data-act="award" data-v="'+v+'"'+(sel?'':' disabled')+'>'+(i<9?'<kbd>'+(i+1)+'</kbd>':'')+sign(v)+'</button>').join('');
+  const log=state.bonus.slice().reverse().slice(0,60);
+  $('#fLog').innerHTML=log.length?'<ul class="alog">'+log.map(b=>{ const p=state.people[b.pid]; return '<li class="'+(b.void?'void':'')+'"><span class="d '+(b.delta<0?'neg':'pos')+'">'+sign(b.delta)+'</span><span>'+esc(p?p.name:'Removed participant')+'</span><time>'+timeStr(b.ts)+'</time><button class="mini" data-act="voidToggle" data-id="'+b.id+'">'+(b.void?'Restore':'Undo')+'</button>'+(b.note?'<span class="t">'+esc(b.note)+'</span>':'')+'</li>'; }).join('')+'</ul>':'<p class="dim">Nothing awarded yet.</p>';
+  $('#fMini').innerHTML=board.rows.length?'<ol class="pv" style="list-style:none">'+board.rows.slice(0,10).map(r=>{ const cp=state.checkpoint[r.id], d=cp==null?null:cp-r.rank; return '<li><span class="em">'+r.rank+'</span><span class="n">'+esc(r.name)+'</span><span class="'+(d>0?'up':d<0?'dn':'')+'">'+(d>0?'▲'+d:d<0?'▼'+(-d):'')+'</span><b>'+fmt(r.total)+'</b></li>'; }).join('')+'</ol>':'<p class="dim">No participants yet.</p>';
+  const N=topCount(board), rv=state.reveal;
+  $('#fReveal').innerHTML=!rv.on?'<p class="dim">Hide the top '+N+' on the screen, then uncover them from the bottom one at a time.</p><div class="revbtns"><button class="btn" data-act="revealStart">Hide standings on the screen</button><button class="btn" data-act="resetArrows">Reset movement arrows</button></div>':'<p><b>'+rv.count+' of '+N+'</b> uncovered.</p><div class="revbtns"><button class="btn primary" data-act="revealNext"'+(rv.count>=N?' disabled':'')+'>Uncover next</button><button class="btn" data-act="revealAll">Uncover all</button><button class="btn" data-act="revealEnd">Show normal standings</button></div>';
+}
+const topCount=board=>state.config.topN>0?Math.min(state.config.topN,board.rows.length):board.rows.length;
+function pickPerson(pid){ fSel=pid; fQuery=''; $('#fSearch').value=''; renderFinalDynamic(); $('#fSearch').focus(); }
+A.pick=el=>pickPerson(el.dataset.pid);
+A.clearPick=()=>{ fSel=null; renderFinalDynamic(); $('#fSearch').focus(); };
+function award(delta,note){
+  if(!fSel){ toast('Pick a participant first.','bad'); return; }
+  const p=state.people[fSel]; if(!p) return;
+  if(!state.bonus.some(b=>!b.void)) state.checkpoint=ranksOf(computeBoard(state));
+  const now=Date.now();
+  state.bonus.push({id:uid(),pid:fSel,delta,note:note||'',ts:now,void:false});
+  state.last={pid:fSel,delta,ts:now};
+  toast(sign(delta)+' for '+p.name);
+  fSel=null; fQuery=''; const s=$('#fSearch'); if(s) s.value='';
+  persist(); if(s) s.focus();
+}
+A.award=el=>award(parseFloat(el.dataset.v),$('#fNote').value.trim());
+A.awardCustom=()=>{ const v=parseFloat($('#fCustom').value); if(!isFinite(v)||v===0){ toast('Type a number of points first.','bad'); return; } award(v,$('#fNote').value.trim()); $('#fCustom').value=''; $('#fNote').value=''; };
+A.voidToggle=el=>{ const b=state.bonus.find(x=>x.id===el.dataset.id); if(!b) return; b.void=!b.void; state.last=null; persist(); };
+A.undoLast=()=>{ const b=state.bonus.slice().reverse().find(x=>!x.void); if(!b){ toast('Nothing to undo.'); return; } b.void=true; state.last=null; persist(); toast('Last award undone.'); };
+A.revealStart=()=>{ state.reveal={on:true,count:0}; persist(); };
+A.revealNext=()=>{ const N=topCount(computeBoard(state)); state.reveal.count=Math.min(N,state.reveal.count+1); persist(); };
+A.revealAll=()=>{ state.reveal.count=topCount(computeBoard(state)); persist(); };
+A.revealEnd=()=>{ state.reveal={on:false,count:0}; persist(); };
+A.resetArrows=()=>{ state.checkpoint=ranksOf(computeBoard(state)); persist(); toast('Movement arrows reset.'); };
+document.addEventListener('keydown',e=>{
+  if(MODE==='screen'){ if(e.key==='f'||e.key==='F') toggleFs(document.documentElement); return; }
+  if(tab!=='final'||!fSel||e.ctrlKey||e.metaKey||e.altKey) return;
+  const t=e.target, typing=t.tagName==='TEXTAREA'||t.tagName==='SELECT'||(t.tagName==='INPUT'&&!(t.id==='fSearch'&&t.value===''));
+  if(typing) return;
+  if(/^[1-9]$/.test(e.key)){ const v=state.config.quick[+e.key-1]; if(v!=null){ e.preventDefault(); award(v,$('#fNote').value.trim()); } }
+  else if(e.key==='Escape'){ fSel=null; renderFinalDynamic(); }
+});
+
+/* =========================================================
+   Screen tab and the projector display
+   ========================================================= */
+function viewScreen(v){
+  v.innerHTML='<div class="pagehead"><div><h1>Screen</h1><p class="sub">This is what the audience sees. Open it in its own window for the projector. It updates by itself whenever you change anything here.</p></div><div class="row-actions"><button class="btn primary" data-act="openScreen">Open projector window</button><button class="btn" data-act="fsEmbed">Fullscreen here</button></div></div><div id="screenEmbed" class="screen embed"></div>';
+  renderDisplay($('#screenEmbed'));
+}
+A.openScreen=()=>{ const w=window.open(location.href.split('#')[0]+'#display','hackoween-screen','popup'); if(!w) toast('The pop-up was blocked. Allow pop-ups for this page, or use Fullscreen here.','bad'); };
+A.fsEmbed=()=>toggleFs($('#screenEmbed'));
+function toggleFs(el){ if(document.fullscreenElement) document.exitFullscreen(); else if(el.requestFullscreen) el.requestFullscreen().catch(()=>{}); }
+
+function makeRowNode(){
+  const n=document.createElement('div'); n.className='rw';
+  n.innerHTML='<div class="rk"></div><div class="mv"></div><div class="nm"></div><div class="track"><span class="seg r1"></span><span class="seg r2"></span><span class="seg b"></span></div><div class="tot"><span class="chip"></span><span class="v"></span></div>';
+  return n;
+}
+function animateNum(node,from,to){
+  cancelAnimationFrame(node._raf); const t0=performance.now(), dur=900;
+  const step=t=>{ const k=Math.min(1,(t-t0)/dur), e=1-Math.pow(1-k,3); node.textContent=fmt(round1(from+(to-from)*e)); if(k<1) node._raf=requestAnimationFrame(step); };
+  node._raf=requestAnimationFrame(step);
+}
+function renderDisplay(el){
+  if(!el) return;
+  const board=computeBoard(state), cfg=state.config;
+  const N=topCount(board), vis=board.rows.slice(0,N);
+  if(!el._init){
+    el.innerHTML='<div class="head"><div><h1 class="ttl"></h1><div class="stage"></div></div><div class="legend"></div></div><div class="rows"></div><div class="empty" hidden></div>'+(el.classList.contains('full')?'<div class="hint">Press F for fullscreen</div>':'');
+    el._init=true; el._map=new Map(); el._lastTs=state.last?state.last.ts:0;
+    if(el.classList.contains('full')) el.addEventListener('dblclick',()=>toggleFs(document.documentElement));
+  }
+  el.style.setProperty('--n',Math.max(5,N));
+  el.querySelector('.ttl').innerHTML=titleHTML(cfg.eventName);
+  el.querySelector('.stage').textContent=stageText(state);
+  el.querySelector('.legend').innerHTML='<span><i style="background:var(--pumpkin)"></i>'+esc(cfg.r1.name)+' out of '+fmt(cfg.r1.weight)+'</span><span><i style="background:var(--wisp)"></i>'+esc(cfg.r2.name)+' out of '+fmt(cfg.r2.weight)+'</span><span><i class="hatch"></i>'+esc(cfg.bonus.name)+' up to +'+fmt(cfg.bonus.cap||0)+'</span>';
+  const rowsEl=el.querySelector('.rows'), map=el._map;
+  rowsEl.style.setProperty('--base',(board.base/board.maxTotal*100)+'%');
+  const empty=el.querySelector('.empty');
+  empty.hidden=vis.length>0; empty.textContent='Waiting for the first results. Import the '+cfg.r1.name+' round to start the board.';
+  const first=new Map(); map.forEach((n,pid)=>{ if(n.isConnected) first.set(pid,n.getBoundingClientRect().top); });
+  const keep=new Set(vis.map(r=>r.id));
+  map.forEach((n,pid)=>{ if(!keep.has(pid)){ n.remove(); map.delete(pid); } });
+  vis.forEach((r,i)=>{
+    let n=map.get(r.id); if(!n){ n=makeRowNode(); map.set(r.id,n); }
+    const hidden=state.reveal.on&&(N-1-i)>=state.reveal.count;
+    updateRowNode(n,r,hidden,board);
+    if(rowsEl.children[i]!==n) rowsEl.insertBefore(n,rowsEl.children[i]||null);
+  });
+  if(!reduce) vis.forEach(r=>{
+    const n=map.get(r.id), f=first.get(r.id); if(f==null) return;
+    const d=f-n.getBoundingClientRect().top;
+    if(Math.abs(d)>1){ n.style.transition='none'; n.style.transform='translateY('+d+'px)'; n.getBoundingClientRect(); n.style.transition='transform .9s cubic-bezier(.2,.8,.2,1)'; n.style.transform=''; }
+  });
+  const L=state.last;
+  if(L&&L.ts>(el._lastTs||0)){
+    el._lastTs=L.ts; const n=map.get(L.pid);
+    if(n&&Date.now()-L.ts<6000&&!(state.reveal.on)){
+      n.classList.remove('pulse'); void n.offsetWidth; n.classList.add('pulse');
+      const chip=n.querySelector('.chip'); chip.textContent=sign(L.delta); chip.className='chip '+(L.delta<0?'neg':'pos')+' on';
+      setTimeout(()=>chip.classList.remove('on'),3500);
+    }
+  }
+}
+function updateRowNode(n,r,hidden,board){
+  n.classList.toggle('first',r.rank===1&&!hidden); n.classList.toggle('veiled',hidden);
+  const rk=n.querySelector('.rk'); rk.textContent=r.rank; rk.className='rk'+(r.rank<=3?' podium':'');
+  const cp=state.checkpoint[r.id], d=(hidden||cp==null)?0:cp-r.rank, mv=n.querySelector('.mv');
+  mv.className='mv '+(d>0?'up':d<0?'dn':''); mv.textContent=d>0?'▲'+d:d<0?'▼'+(-d):'';
+  const nm=n.querySelector('.nm'); nm.textContent=hidden?'••••••••':r.name; nm.title=hidden?'':r.name;
+  const w=hidden?[0,0,0]:[r.r1.pts,r.r2.pts,Math.max(0,r.bonus.pts)].map(v=>Math.min(100,v/board.maxTotal*100));
+  n.querySelector('.seg.r1').style.width=w[0]+'%'; n.querySelector('.seg.r2').style.width=w[1]+'%'; n.querySelector('.seg.b').style.width=w[2]+'%';
+  const tv=n.querySelector('.tot .v'), prev=parseFloat(n.dataset.val);
+  if(hidden){ tv.textContent='???'; n.dataset.val=''; }
+  else { if(!isNaN(prev)&&prev!==r.total&&!reduce) animateNum(tv,prev,r.total); else tv.textContent=fmt(r.total); n.dataset.val=r.total; }
+}
+
+/* =========================================================
+   Settings tab
+   ========================================================= */
+function viewSettings(v){
+  const c=state.config;
+  const num=(path,val,min)=>'<input type="number" step="any" min="'+(min==null?0:min)+'" value="'+(val==null?'':val)+'" data-chg="cfg" data-path="'+path+'" data-type="number">';
+  const txt=(path,val)=>'<input type="text" value="'+esc(val)+'" data-chg="cfg" data-path="'+path+'">';
+  const modeSel=key=>'<select data-chg="cfg" data-path="'+key+'.mode">'+[['max','Share of the maximum score'],['top','Share of the top scorer'],['pct','Percentile rank']].map(x=>'<option value="'+x[0]+'"'+(c[key].mode===x[0]?' selected':'')+'>'+x[1]+'</option>').join('')+'</select>';
+  const hist=safeParse(store.get(HIST_KEY))||[];
+  v.innerHTML='<div class="pagehead"><div><h1>Settings</h1><p class="sub">Changes apply immediately, to the leaderboard and the screen.</p></div></div>'+
+  '<section class="panel"><h2>Event</h2><div class="sgrid"><label class="fld">Event name'+txt('eventName',c.eventName)+'</label><label class="fld">Subtitle on the screen'+txt('stageOverride',c.stageOverride)+'<small>Leave empty to describe the latest round automatically.</small></label>'+
+  '<label class="fld">Rows shown on the screen<select data-chg="cfg" data-path="topN" data-type="int">'+[5,8,10,12,15,20,0].map(n=>'<option value="'+n+'"'+(c.topN===n?' selected':'')+'>'+(n?'Top '+n:'Everyone')+'</option>').join('')+'</select></label></div></section>'+
+  '<section class="panel" style="margin-top:1.2rem"><h2>Quick setup</h2><p class="explain">One click sets up the three rounds: coding (out of 100 on HackerRank), the quiz, and the logo round as points on top. You can still change everything below. For the speed penalty, also enter how long the coding round ran.</p><div class="row-actions" style="margin-top:.6rem"><button class="btn primary" data-act="preset" data-p="a">40% coding, 40% quiz, 20% logo round</button><button class="btn" data-act="preset" data-p="b">40% coding, 50% quiz, 10% logo round</button></div></section>'+
+  '<section class="panel" style="margin-top:1.2rem"><h2>Scoring</h2><p class="explain">Every round is converted into points on its own scale, so a big raw number in one round cannot drown out another. The final round is a bonus on top of the base total.</p>'+
+  [['r1','Coding round (HackerRank)'],['r2','Quiz round']].map(x=>'<div class="roundcfg"><h3>'+x[1]+'</h3><div class="sgrid"><label class="fld">Name on the screen'+txt(x[0]+'.name',c[x[0]].name)+'</label><label class="fld">Worth (points)'+num(x[0]+'.weight',c[x[0]].weight)+'</label><label class="fld">Maximum possible score'+num(x[0]+'.max',c[x[0]].max)+'<small>Needed for the "share of maximum" scaling.</small></label><label class="fld">Scaling'+modeSel(x[0])+'</label><label class="fld">Speed penalty (% of the round)'+num(x[0]+'.timePct',c[x[0]].timePct)+'<small>0 turns it off. The slowest solve loses this much, faster solves lose proportionally less.</small></label><label class="fld">Slowest time counted (minutes)'+num(x[0]+'.timeLimit',c[x[0]].timeLimit)+'<small>Usually the length of the round.</small></label></div></div>').join('')+
+  '<div class="roundcfg"><h3>Logo round (points on top of the base)</h3><div class="sgrid"><label class="fld">Name on the screen'+txt('bonus.name',c.bonus.name)+'</label><label class="fld">Most bonus one person can earn'+num('bonus.cap',c.bonus.cap)+'<small>0 means no limit. Base total is '+fmt((c.r1.weight||0)+(c.r2.weight||0))+', so this is '+(((c.r1.weight||0)+(c.r2.weight||0))>0?Math.round((c.bonus.cap||0)/((c.r1.weight||0)+(c.r2.weight||0))*100):0)+'% of it.</small></label>'+
+  '<label class="fld">Quick award buttons<input type="text" value="'+esc(c.quick.join(', '))+'" data-chg="quick"><small>Comma-separated. Negative values work for wrong buzzes. The first nine get number keys.</small></label></div></div>'+
+  '<div class="roundcfg"><h3>How ties are broken</h3><p class="explain">Total points, then coding points, then the faster coding time, then MCQ points. With a speed penalty on, two people with the same score already end up with different points. Anyone still exactly level shares a rank.</p></div></section>'+
+  '<section class="panel" style="margin-top:1.2rem"><h2>Data and backups</h2><p class="explain">Everything is saved in this browser automatically. Download a backup before the event as well.</p><div class="row-actions" style="margin:.8rem 0"><button class="btn" data-act="dlBackup">Download backup</button><label class="btn">Restore a backup file<input type="file" accept=".json,application/json" hidden data-chg="restoreFile"></label></div>'+
+  '<h3>Undo an import or a reset</h3>'+(hist.length?'<div class="row-actions"><select id="snapSel">'+hist.map((h,i)=>'<option value="'+i+'">'+esc(h.label)+' at '+timeStr(h.ts)+'</option>').join('')+'</select><button class="btn" data-act="restoreSnap">Restore this snapshot</button></div>':'<p class="dim">Snapshots appear here after your first import.</p>')+
+  '<h3>Practice with sample files</h3><p class="explain">Sample exports with deliberate problems: a duplicate, a blank score, a typo in an email, a stranger, a score above the maximum. Import the coding file first (out of 300), then the quiz file (out of 30).</p><div class="row-actions"><button class="btn" data-act="dlSample" data-kind="r1">Download sample coding CSV</button><button class="btn" data-act="dlSample" data-kind="r2">Download sample quiz CSV</button></div>'+
+  '<h3>Start fresh</h3><div class="row-actions"><input id="resetTxt" placeholder="Type RESET to confirm" aria-label="Type RESET to confirm"><button class="btn danger" data-act="resetAll">Erase participants and scores</button></div></section>';
+}
+C.cfg=el=>{
+  const path=el.dataset.path.split('.'); let o=state.config; for(let i=0;i<path.length-1;i++) o=o[path[i]];
+  const k=path[path.length-1]; let val=el.value;
+  if(el.dataset.type==='number'){ val=val===''?null:parseFloat(val); if(val!=null&&isNaN(val)) return; if(k==='weight'||k==='cap'||k==='timePct') val=Math.min(k==='timePct'?100:Infinity,val||0); }
+  else if(el.dataset.type==='int') val=parseInt(val,10);
+  o[k]=val; persist(); if(el.dataset.path==='bonus.name') drawTabs();
+};
+C.quick=el=>{ const n=parseQuick(el.value); if(!n.length){ toast('Enter numbers separated by commas.','bad'); el.value=state.config.quick.join(', '); return; } state.config.quick=n.slice(0,12); persist(); };
+A.dlBackup=()=>download('hackoween-backup-'+new Date().toISOString().slice(0,16).replace(/[:T]/g,'-')+'.json',JSON.stringify(state,null,1),'application/json');
+C.restoreFile=async el=>{
+  const f=el.files[0]; if(!f) return;
+  try{ const s=JSON.parse(await f.text()); if(!s||typeof s!=='object'||!s.people) throw new Error('not a scoreboard backup'); snapshot('Before restoring a backup'); const rev=state.rev; state=normalizeState(s); state.rev=rev; persist(); toast('Backup restored.'); }
+  catch(e){ toast('That file is not a valid backup: '+e.message,'bad'); }
+  el.value='';
+};
+A.restoreSnap=()=>{ const h=safeParse(store.get(HIST_KEY))||[], i=parseInt($('#snapSel').value,10); if(!h[i]) return; const rev=state.rev; state=normalizeState(h[i].state); state.rev=rev; persist(); toast('Snapshot restored.'); };
+A.dlSample=el=>download(el.dataset.kind==='r1'?'sample-coding-results.csv':'sample-mcq-results.csv',makeSample(el.dataset.kind),'text/csv');
+A.resetAll=()=>{
+  if($('#resetTxt').value.trim()!=='RESET'){ toast('Type RESET in the box first.','bad'); return; }
+  snapshot('Before erasing everything'); const cfg=state.config, rev=state.rev; state=defaultState(); state.config=cfg; state.rev=rev; imp=null; fSel=null; persist(); toast('Participants and scores erased. Settings kept.');
+};
+
+/* ---------- boot ---------- */
+if(MODE==='screen'){
+  $('#app').hidden=true; const root=$('#screenRoot'); root.hidden=false; document.title='Hack-O-Ween Screen'; renderDisplay(root);
+} else initAdmin();
+})();
+</script>
+</body>
+</html>
