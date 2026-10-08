@@ -416,14 +416,16 @@ async function create(){
   try{
     const t=$('#js').value.trim(); let title=null, qs=null;
     if(t){
-      const j=JSON.parse(t); title=j.title||'Quiz';
+      let j; try{j=JSON.parse(t)}catch(e){throw Object.assign(Error('the quiz box does not contain valid JSON. Empty it to use the built-in quiz.'),{user:true})}
+      if(!j||!Array.isArray(j.questions)) throw Object.assign(Error('the JSON needs a "questions" list. Empty the box to use the built-in quiz.'),{user:true});
+      title=j.title||'Quiz';
       qs=j.questions.map(q=>({q:q.question,o:Object.values(q.options),a:Object.keys(q.options).indexOf(q.correct_answer),p:q.points||1}));
       if(!qs.length||qs.some(q=>q.a<0||q.o.length<2)) throw Error('Each question needs 2+ options and a valid correct_answer');
     }
     b.disabled=true;
     const c=await adm('quiz_admin_create_room',{p_secs:+$('#secs').value||25,p_title:title,p_questions:qs});
     ls.set('mdc_room',c); dash(c);
-  }catch(e){if(!/^ADMIN_SESSION/.test(e.message))msg('Could not create: '+friendly(e))}
+  }catch(e){if(!/^ADMIN_SESSION/.test(e.message))msg('Could not create: '+(e.user?e.message:friendly(e)))}
   finally{if($('#cb'))$('#cb').disabled=false}
 }
 function dash(c){
