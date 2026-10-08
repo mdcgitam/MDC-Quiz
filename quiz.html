@@ -133,6 +133,7 @@ a.btn{display:inline-block;text-align:center;text-decoration:none;box-sizing:bor
 /* ---- signup options (keep in sync with quiz_join in supabase-setup.sql) ---- */
 const YEARS=['1st Year','2nd Year','3rd Year','4th Year'];
 const DEPTS=['CSE-AIML','Core','CS','DS'];
+const GENDERS=['Male','Female','Other','Prefer not to say'];
 
 const $=s=>document.querySelector(s), app=$('#app');
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -176,11 +177,12 @@ const FIELDS=[
   ['rn',v=>/^[A-Z0-9]{5,20}$/.test(v),'Please enter a valid registration number (5–20 letters/digits).'],
   ['yr',v=>YEARS.includes(v),'Please select your year.'],
   ['dp',v=>DEPTS.includes(v),'Please select your department.'],
+  ['gd',v=>GENDERS.includes(v),'Please select your gender.'],
   ['rc',v=>/^[A-Z0-9]{5}$/.test(v),'Please enter the 5-character room code.']
 ];
 function home(){
   unsub(); st={};
-  const ySel=ls.get('mdc_year'), dSel=ls.get('mdc_dept'), R='<span class="rq">*</span>';
+  const ySel=ls.get('mdc_year'), dSel=ls.get('mdc_dept'), gSel=ls.get('mdc_gender'), R='<span class="rq">*</span>';
   show(`<main class="card compact">${BRAND}
     <h1>Join the quiz</h1>
     <p class="sub">Enter the room code your host shared and fill in your details. All fields are required.</p>
@@ -191,7 +193,8 @@ function home(){
       <label>Registration number${R}<input id="rn" maxlength="20" required placeholder="e.g. 2023001234" value="${esc(ls.get('mdc_reg')||'')}"></label>
       <label>Year${R}<select id="yr" required><option value="" disabled${YEARS.includes(ySel)?'':' selected'}>Select year</option>${YEARS.map(y=>`<option${y===ySel?' selected':''}>${esc(y)}</option>`).join('')}</select></label>
       <label>Department${R}<select id="dp" required><option value="" disabled${DEPTS.includes(dSel)?'':' selected'}>Select department</option>${DEPTS.map(d=>`<option${d===dSel?' selected':''}>${esc(d)}</option>`).join('')}</select></label>
-      <label class="full">Room code${R}<input id="rc" maxlength="5" required placeholder="ABCDE" autocapitalize="characters" value="${esc(location.hash.slice(1).slice(0,5))}"></label>
+      <label>Gender${R}<select id="gd" required><option value="" disabled${GENDERS.includes(gSel)?'':' selected'}>Select gender</option>${GENDERS.map(g=>`<option${g===gSel?' selected':''}>${esc(g)}</option>`).join('')}</select></label>
+      <label>Room code${R}<input id="rc" maxlength="5" required placeholder="ABCDE" autocapitalize="characters" value="${esc(location.hash.slice(1).slice(0,5))}"></label>
       <button class="btn full" id="jb">Join the room →</button>
     </form>
     <p id="msg" class="msg"></p>
@@ -202,7 +205,7 @@ function home(){
 }
 function readForm(){
   const v={nm:$('#nm').value.trim().replace(/\s+/g,' '),em:$('#em').value.trim().toLowerCase(),hr:$('#hr').value.trim().replace(/^@/,''),rn:$('#rn').value.replace(/\s+/g,'').toUpperCase(),
-    yr:$('#yr').value,dp:$('#dp').value,rc:$('#rc').value.trim().toUpperCase()};
+    yr:$('#yr').value,dp:$('#dp').value,gd:$('#gd').value,rc:$('#rc').value.trim().toUpperCase()};
   let first='';
   FIELDS.forEach(([id,ok,m])=>{const bad=!ok(v[id]);$('#'+id).classList.toggle('inv',bad);if(bad&&!first){first=m;$('#'+id).focus()}});
   return first?(msg(first),null):v;
@@ -210,13 +213,13 @@ function readForm(){
 
 async function join(){
   const v=readForm(); if(!v) return;
-  const c=v.rc, jb=$('#jb'), args=t=>({p_code:c,p_name:v.nm,p_email:v.em,p_reg:v.rn,p_year:v.yr,p_dept:v.dp,p_token:t,p_hr:v.hr});
+  const c=v.rc, jb=$('#jb'), args=t=>({p_code:c,p_name:v.nm,p_email:v.em,p_reg:v.rn,p_year:v.yr,p_dept:v.dp,p_token:t,p_hr:v.hr,p_gender:v.gd});
   jb.disabled=true; msg('');
   try{
     let tok=tokFor(c), res;
     try{res=await rpc('quiz_join',args(tok))}
     catch(e){if(e.message!=='DEVICE_MISMATCH')throw e;tok=newTok(c);res=await rpc('quiz_join',args(tok))}  // shared device, different student
-    ls.set('mdc_name',v.nm); ls.set('mdc_mail',v.em); ls.set('mdc_hr',v.hr); ls.set('mdc_reg',v.rn); ls.set('mdc_year',v.yr); ls.set('mdc_dept',v.dp);
+    ls.set('mdc_name',v.nm); ls.set('mdc_mail',v.em); ls.set('mdc_hr',v.hr); ls.set('mdc_reg',v.rn); ls.set('mdc_year',v.yr); ls.set('mdc_dept',v.dp); ls.set('mdc_gender',v.gd);
     const r=res.room, m=res.me;
     st={c,tok,title:r.title,secs:r.secs,total:r.total,status:r.status,n:m.name,reg:m.reg,year:m.year,dept:m.dept,v:'',seq:0};
     applyMe(m); unsub(); route();
@@ -225,7 +228,7 @@ async function join(){
       if(s.status!==st.status){st.status=s.status;route()}},2500));
   }catch(e){
     const m=friendly(e); msg(m);
-    if(/HackerRank/i.test(m))$('#hr').classList.add('inv'); else if(/registration number/i.test(m))$('#rn').classList.add('inv'); else if(/room/i.test(m))$('#rc').classList.add('inv');
+    if(/HackerRank/i.test(m))$('#hr').classList.add('inv'); else if(/gender/i.test(m))$('#gd').classList.add('inv'); else if(/registration number/i.test(m))$('#rn').classList.add('inv'); else if(/room/i.test(m))$('#rc').classList.add('inv');
   }finally{const b=$('#jb');if(b)b.disabled=false}
 }
 const applyMe=m=>{if(m)Object.assign(st,{i:m.done,score:m.score,ok:m.ok,ms:m.ms})};
@@ -339,9 +342,9 @@ function board(rows,adm){
 function logins(rows){
   const N=st.r.total, now=Date.now();
   rows=rows.slice().sort((a,b)=>(a.joined||0)-(b.joined||0));
-  return `<div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Mail ID</th><th>HackerRank</th><th>Reg. No.</th><th>Year</th><th>Department</th><th>Logged in</th><th>Last active</th><th>Logins</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>${rows.map((p,i)=>{
+  return `<div class="tw"><table><thead><tr><th>#</th><th>Name</th><th>Mail ID</th><th>HackerRank</th><th>Reg. No.</th><th>Year</th><th>Department</th><th>Gender</th><th>Logged in</th><th>Last active</th><th>Logins</th><th>Progress</th><th>Status</th><th></th></tr></thead><tbody>${rows.map((p,i)=>{
     const on=p.last&&now-p.last<45000, s=p.fin?'Finished':p.done?'Playing':'In lobby';
-    return `<tr><td>${i+1}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.email||'—')}</td><td>${esc(p.hr||'—')}</td><td>${esc(p.reg||'—')}</td><td>${esc(p.year||'—')}</td><td>${esc(p.dept||'—')}</td><td>${tm(p.joined)}</td><td>${tm(p.last)}</td><td>${p.logins||1}</td><td>${p.done}/${N}</td><td><span class="dot ${p.fin?'':on?'on':'dn'}"></span>${s}${on&&!p.fin?' · online':''}</td><td><button class="x" title="Remove" onclick="kick('${esc(p.id)}')">✕</button></td></tr>`}).join('')||'<tr><td colspan="13" class="sub">Nobody has logged in yet.</td></tr>'}</tbody></table></div>`;
+    return `<tr><td>${i+1}</td><td><b>${esc(p.name)}</b></td><td>${esc(p.email||'—')}</td><td>${esc(p.hr||'—')}</td><td>${esc(p.reg||'—')}</td><td>${esc(p.year||'—')}</td><td>${esc(p.dept||'—')}</td><td>${esc(p.gender||'—')}</td><td>${tm(p.joined)}</td><td>${tm(p.last)}</td><td>${p.logins||1}</td><td>${p.done}/${N}</td><td><span class="dot ${p.fin?'':on?'on':'dn'}"></span>${s}${on&&!p.fin?' · online':''}</td><td><button class="x" title="Remove" onclick="kick('${esc(p.id)}')">✕</button></td></tr>`}).join('')||'<tr><td colspan="14" class="sub">Nobody has logged in yet.</td></tr>'}</tbody></table></div>`;
 }
 
 /* ---------- admin portal (password checked by the server; session kept for this tab only) ---------- */
@@ -431,7 +434,7 @@ async function exportXlsx(){
     const qs=d.room.qs, N=qs.length, L=k=>k>=0?'ABCDEFGH'[k]:'No answer';
     const rows=d.players.slice().sort((a,b)=>b.score-a.score||a.ms-b.ms);
     const participants=rows.map((p,i)=>({
-      'Rank':i+1,'Full Name':p.name,'Mail ID':p.email,'HackerRank Username':p.hr||'','Registration No.':p.reg,'Year':p.year,'Department':p.dept,
+      'Rank':i+1,'Full Name':p.name,'Mail ID':p.email,'HackerRank Username':p.hr||'','Registration No.':p.reg,'Year':p.year,'Department':p.dept,'Gender':p.gender||'',
       'Score':p.score,'Correct':p.ok,'Total Questions':N,'Answered':p.done,'Time Taken (s)':+(p.ms/1000).toFixed(1),
       'Status':p.fin?'Finished':p.done?'Incomplete':'Did not start','Joined At':dt(p.joined),'Last Active':dt(p.last),'Logins':p.logins}));
     const answers=rows.map(p=>{const o={'Full Name':p.name,'Registration No.':p.reg};
@@ -440,7 +443,7 @@ async function exportXlsx(){
       q.o.forEach((t,k)=>o['Option '+L(k)]=t);
       o['Answered Correctly']=rows.filter(p=>p.ans[j]===q.a).length;return o});
     const wb=XLSX.utils.book_new(), add=(data,name,w)=>{const ws=XLSX.utils.json_to_sheet(data.length?data:[{'':'No data'}]);ws['!cols']=w;XLSX.utils.book_append_sheet(wb,ws,name)};
-    add(participants,'Participants',[6,24,30,20,18,10,14,8,8,14,10,14,14,22,22,8].map(wch=>({wch})));
+    add(participants,'Participants',[6,24,30,20,18,10,14,16,8,8,14,10,14,14,22,22,8].map(wch=>({wch})));
     add(answers,'Answers',[{wch:24},{wch:18}]);
     add(questions,'Questions',[{wch:4},{wch:60},{wch:7},{wch:14}]);
     XLSX.writeFile(wb,`MDC_Quiz_${c}_${new Date().toLocaleDateString('en-CA')}.xlsx`);

@@ -211,12 +211,12 @@ test('quiz.html: HackerRank username on the join form, and the projector leaderb
   const s = (await call('quiz_admin_login', { p_password: PW })).session
   const code = await call('quiz_admin_create_room', { p_session: s, p_secs: 30 })
 
-  async function join(name, email, hr, reg) {
+  async function join(name, email, hr, reg, gender = 'Male') {
     const W = openPage('quiz.html', '', call)
     const $ = q => W.document.querySelector(q)
     await until(() => $('#jf'), 'join form')
     const set = (id, v) => { $('#' + id).value = v }
-    set('nm', name); set('em', email); set('rn', reg); set('yr', '2nd Year'); set('dp', 'CS'); set('rc', code); set('hr', hr)
+    set('nm', name); set('em', email); set('rn', reg); set('yr', '2nd Year'); set('dp', 'CS'); set('rc', code); set('hr', hr); set('gd', gender)
     $('#jf').dispatchEvent(new W.Event('submit', { bubbles: true, cancelable: true }))
     return { W, $ }
   }
@@ -226,10 +226,13 @@ test('quiz.html: HackerRank username on the join form, and the projector leaderb
   a.$('#hr').value = '@asha_r'
   a.$('#jf').dispatchEvent(new a.W.Event('submit', { bubbles: true, cancelable: true }))
   await until(() => /You're in/.test(a.W.document.body.textContent), 'lobby after joining')
+  const g = await join('No Gender', 'ng@x.edu', 'ngender', 'REG00003', '')
+  await until(() => /select your gender/.test(g.$('#msg').textContent), 'gender required in the browser')
+  assert.ok(g.$('#gd').classList.contains('inv'))
   const b = await join('Copy Cat', 'cc@x.edu', 'ASHA_R', 'REG00002')
   await until(() => /already joined this room/.test(b.$('#msg').textContent), 'duplicate username rejected')
   assert.ok(b.$('#hr').classList.contains('inv'))
-  assert.equal((await db.query(`select hr from quiz_players where room_code=$1`, [code])).rows[0].hr, 'asha_r')
+  assert.deepEqual((await db.query(`select hr, gender from quiz_players where room_code=$1`, [code])).rows[0], { hr: 'asha_r', gender: 'Male' })
 
   const B = openPage('quiz.html', '?board=' + code.toLowerCase(), call)
   await until(() => B.document.querySelectorAll('#qb li').length === 1, 'projector board lists the player')

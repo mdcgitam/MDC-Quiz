@@ -33,13 +33,15 @@ test('SQL: quiz join with HackerRank username, live quiz round, scoreboard save/
   const s = (await rpc('quiz_admin_login', { p_password: 'a-long-test-password' })).session
   assert.ok(s)
   const code = await rpc('quiz_admin_create_room', { p_session: s, p_secs: 30 })
-  const join = (n, reg, hr, tok) => rpc('quiz_join', { p_code: code, p_name: n, p_email: n.toLowerCase().replace(/ /g, '.') + '@x.edu', p_reg: reg, p_year: '2nd Year', p_dept: 'CS', p_token: tok.padEnd(40, 'x'), p_hr: hr })
+  const join = (n, reg, hr, tok) => rpc('quiz_join', { p_code: code, p_name: n, p_email: n.toLowerCase().replace(/ /g, '.') + '@x.edu', p_reg: reg, p_year: '2nd Year', p_dept: 'CS', p_token: tok.padEnd(40, 'x'), p_hr: hr, p_gender: 'Female' })
   await join('Asha Rao', 'REG0001', 'asha_r', 'tokA')
   await join('Kiran Das', 'REG0002', 'KiranD', 'tokB')
   await join('Guest One', 'REG0003', 'guesty', 'tokC')
   await fails(join('Copy Cat', 'REG0004', 'ASHA_R', 'tokD'), /HackerRank username has already joined/)
   await fails(join('No Handle', 'REG0005', '', 'tokE'), /HackerRank username/)
   await fails(rpc('quiz_join', { p_code: code, p_name: 'Old Client', p_email: 'o@x.edu', p_reg: 'REG0006', p_year: '2nd Year', p_dept: 'CS', p_token: 'tokF'.padEnd(40, 'x') }), /HackerRank username/)
+  await fails(rpc('quiz_join', { p_code: code, p_name: 'No Gender', p_email: 'ng@x.edu', p_reg: 'REG0007', p_year: '2nd Year', p_dept: 'CS', p_token: 'tokG'.padEnd(40, 'x'), p_hr: 'nogender' }), /gender/)
+  assert.equal((await db.query(`select gender from quiz_players where reg='REG0001'`)).rows[0].gender, 'Female')
   await join('Asha Rao', 'REG0001', 'asha_r', 'tokA') // rejoining on the same device still works
 
   await rpc('quiz_admin_set_status', { p_session: s, p_code: code, p_status: 'live' })
@@ -54,7 +56,7 @@ test('SQL: quiz join with HackerRank username, live quiz round, scoreboard save/
   assert.equal(board.players.length, 3)
   assert.ok(board.players[0].score > 0)
   const dash = await rpc('quiz_admin_dashboard', { p_session: s, p_code: code })
-  assert.ok(dash.players.some(p => p.hr === 'KiranD'))
+  assert.ok(dash.players.some(p => p.hr === 'KiranD' && p.gender === 'Female'))
 
   // scoreboard: link the quiz room and save participants (Kiran only by HackerRank username, different email)
   const got = await rpc('hw_admin_get', { p_session: s })

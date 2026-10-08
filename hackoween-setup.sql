@@ -18,6 +18,7 @@
 
 -- ---------- HackerRank username on quiz players ----------
 alter table public.quiz_players add column if not exists hr text not null default '';
+alter table public.quiz_players add column if not exists gender text not null default '';
 create unique index if not exists quiz_players_room_hr_idx on public.quiz_players (room_code, lower(hr)) where hr <> '';
 
 -- ---------- event data ----------
@@ -162,10 +163,11 @@ begin
   return (select doc from hw_snapshots where id = p_id);
 end $$;
 
--- ---------- quiz_join: now also takes the HackerRank username (required) ----------
+-- ---------- quiz_join: now also takes the HackerRank username and gender (both required) ----------
 drop function if exists public.quiz_join(text,text,text,text,text,text,text);
+drop function if exists public.quiz_join(text,text,text,text,text,text,text,text);
 create or replace function public.quiz_join(p_code text, p_name text, p_email text, p_reg text,
-  p_year text, p_dept text, p_token text, p_hr text default null) returns jsonb
+  p_year text, p_dept text, p_token text, p_hr text default null, p_gender text default null) returns jsonb
 language plpgsql security definer set search_path = public, extensions as $$
 declare r quiz_rooms; p quiz_players; h text;
 begin
@@ -181,6 +183,7 @@ begin
   if p_year is null or p_year not in ('1st Year','2nd Year','3rd Year','4th Year') then raise exception 'Please select your year.'; end if;
   if p_dept is null or p_dept not in ('CSE-AIML','Core','CS','DS') then raise exception 'Please select your department.'; end if;
   if p_hr !~ '^[A-Za-z0-9_.-]{2,40}$' then raise exception 'Please enter your HackerRank username (letters, digits, _ . -). Refresh the page if you don''t see the box.'; end if;
+  if p_gender is null or p_gender not in ('Male','Female','Other','Prefer not to say') then raise exception 'Please select your gender. Refresh the page if you don''t see the box.'; end if;
   if p_token is null or length(p_token) < 32 then raise exception 'Invalid device token.'; end if;
 
   select * into r from quiz_rooms where code = p_code;
@@ -194,12 +197,12 @@ begin
   select * into p from quiz_players where token_hash = h;
   if found then
     if p.room_code <> p_code or p.reg <> p_reg then raise exception 'DEVICE_MISMATCH'; end if;
-    update quiz_players set email = p_email, year = p_year, dept = p_dept, hr = p_hr, last_at = now(), logins = logins + 1
+    update quiz_players set email = p_email, year = p_year, dept = p_dept, hr = p_hr, gender = p_gender, last_at = now(), logins = logins + 1
       where id = p.id returning * into p;
   else
     begin
-      insert into quiz_players(room_code, token_hash, name, email, reg, year, dept, hr)
-        values (p_code, h, p_name, p_email, p_reg, p_year, p_dept, p_hr) returning * into p;
+      insert into quiz_players(room_code, token_hash, name, email, reg, year, dept, hr, gender)
+        values (p_code, h, p_name, p_email, p_reg, p_year, p_dept, p_hr, p_gender) returning * into p;
     exception when unique_violation then
       raise exception 'This registration number has already joined this room. Use the device you joined with, or ask the host.';
     end;
@@ -219,7 +222,7 @@ begin
   return jsonb_build_object(
     'room', _quiz_room_json(r) || case when p_questions then jsonb_build_object('qs', r.questions) else '{}'::jsonb end,
     'players', coalesce((select jsonb_agg(jsonb_build_object(
-        'id', id, 'name', name, 'email', email, 'reg', reg, 'year', year, 'dept', dept, 'hr', hr,
+        'id', id, 'name', name, 'email', email, 'reg', reg, 'year', year, 'dept', dept, 'hr', hr, 'gender', gender,
         'score', score, 'ok', ok, 'ms', ms, 'done', done, 'fin', done >= n,
         'ans', (select coalesce(jsonb_agg((x ->> 'c')::int), '[]') from jsonb_array_elements(answers) x),
         'joined', _quiz_ms(joined_at), 'last', _quiz_ms(last_at), 'logins', logins) order by joined_at)
@@ -228,7 +231,7 @@ end $$;
 
 -- ---------- permissions ----------
 revoke execute on function public._hw_norm(text), public._hw_quiz(jsonb, boolean) from public, anon, authenticated;
-grant execute on function public.quiz_join(text,text,text,text,text,text,text,text), public.hw_public(), public.hw_my(text),
+grant execute on function public.quiz_join(text,text,text,text,text,text,text,text,text), public.hw_public(), public.hw_my(text),
   public.quiz_room_board(text), public.hw_admin_get(text), public.hw_admin_save(text,jsonb,bigint,text),
   public.hw_admin_snapshot(text,bigint) to anon;
 
