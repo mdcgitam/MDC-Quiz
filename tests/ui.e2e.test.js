@@ -237,6 +237,25 @@ test('quiz.html: HackerRank username on the join form, and the projector leaderb
   const B = openPage('quiz.html', '?board=' + code.toLowerCase(), call)
   await until(() => B.document.querySelectorAll('#qb li').length === 1, 'projector board lists the player')
   assert.match(B.document.getElementById('qbMeta').textContent, /Waiting to start · 1 player$/)
+
+  // Hack-O-Ween standings on the player's results screen
+  const tok = a.W.localStorage.getItem('mdc_tok_' + code)
+  await call('quiz_admin_set_status', { p_session: s, p_code: code, p_status: 'live' })
+  const q = await call('quiz_question', { p_token: tok })
+  await call('quiz_answer', { p_token: tok, p_index: q.index, p_choice: 0 })
+  const hw = H.defaultState()
+  hw.config.quizRoom = code
+  hw.people = { p1: { id: 'p1', name: 'Asha Rao', email: 'asha@x.edu', ext: '', dq: false }, p2: { id: 'p2', name: 'Bo Chen', email: 'bo@x.edu', ext: 'boc', dq: false } }
+  hw.scores.r1 = { p1: { raw: 40, time: null }, p2: { raw: 90, time: null } }
+  let rev = Number(await call('hw_admin_save', { p_session: s, p_doc: hw, p_rev: 0 }))
+  await call('quiz_admin_set_status', { p_session: s, p_code: code, p_status: 'ended' })
+  const box = await until(() => { const e = a.$('#hw'); return e && !e.hidden && /#2/.test(e.textContent) && e }, 'player sees their combined rank', 15000)
+  assert.match(box.textContent, /Asha Rao \(you\)/)
+  assert.match(box.textContent, /Bo Chen/)
+  assert.match(box.textContent, /of 2/)
+  hw.reveal = { on: true, count: 0 }
+  rev = Number(await call('hw_admin_save', { p_session: s, p_doc: hw, p_rev: rev }))
+  await until(() => /revealed on the big screen/.test(a.$('#hw').textContent) && !/Bo Chen/.test(a.$('#hw').textContent), 'standings hidden during reveal', 15000)
   await db.close()
 })
 

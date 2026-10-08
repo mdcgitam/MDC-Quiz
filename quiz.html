@@ -124,7 +124,20 @@ a.btn{display:inline-block;text-align:center;text-decoration:none;box-sizing:bor
 .proj .lb li.bump b{color:var(--good)}
 .proj .meta{color:var(--mut);font-weight:700;font-size:clamp(14px,2.2vh,22px);text-align:right}
 @media(prefers-reduced-motion:reduce){.proj .lb li{transition:none!important}}
+
+/* ---- Hack-O-Ween standings on the player's results screen ---- */
+.hw{margin:18px 0 6px;padding:16px;border:1px solid var(--line);border-radius:18px;background:var(--tile)}
+.hw .hd h3{margin:0;font-family:Creepster,"Josefin Sans",cursive;font-weight:400;letter-spacing:.06em;font-size:24px}
+.hw .stage{color:var(--mut);font-size:13px;font-weight:600}
+.hw .me{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:12px 0 4px}
+.hw .rank{font:700 44px/1 "Josefin Sans",Inter,sans-serif;color:var(--cat)}
+.hw .tot{font:700 22px "Josefin Sans",Inter,sans-serif}
+.hw .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 14px}
+.hw .tiles div{background:var(--card);border-radius:12px;padding:10px;font-size:12px;color:var(--mut);border-top:3px solid var(--c)}
+.hw .tiles b{display:block;font-size:20px;color:var(--ink)}
+.hw .note{color:var(--mut);margin:8px 0}
 </style></head><body><div id="app"></div>
+<script src="hackoween-core.js"></script>
 <p class="foot">Meta Code Quest 2.0 · Hack-O-Ween · Meta Developer Communities · GITAM · <a href="https://mdcgitam.in" target="_blank" rel="noopener">mdcgitam.in</a></p>
 <script>
 /* All scoring, timing and the answer key live in Supabase (see supabase-setup.sql).
@@ -285,14 +298,36 @@ function results(){
       </div>
       <button class="btn" style="width:auto;margin:0;padding:11px 18px" onclick="showTop5()">🏆 Top Participants</button>
     </div>
+    <section class="hw" id="hw" hidden></section>
     <h3>Leaderboard</h3><div id="lb">Loading…</div>
     ${top5ModalHTML()}
   </main>`);
+  if(window.HW) subs.push(poll(hwStandings,8000));
   // the public leaderboard only contains name, score, time and finished flag
   subs.push(poll(async()=>{
     st.allRows=await rpc('quiz_leaderboard',{p_token:st.tok},1);
     const e=$('#lb'); if(e) e.innerHTML=board(st.allRows,false);
   },5000));
+}
+
+/* ---------- Hack-O-Ween standings (only for the quiz room linked to the scoreboard) ----------
+   Same data and maths as the projector screen: hw_public + hackoween-core.js. hw_my finds this player's
+   participant id (matched by email, HackerRank username or name once they have answered a question). */
+async function hwStandings(){
+  const pub=await rpc('hw_public',{},1), box=$('#hw'); if(!box) return;
+  if(!pub||!pub.quiz||pub.quiz.room!==st.c){ box.hidden=true; return; }
+  if(!st.pid) st.pid=(await rpc('hw_my',{p_token:st.tok},1)||{}).pid||null;
+  const H=window.HW, eff=H.withQuiz(H.normalizeState(pub.doc),pub.quiz), b=H.computeBoard(eff), c=eff.config;
+  const fm=n=>Math.abs(n-Math.round(n))<1e-9?String(Math.round(n)):n.toFixed(1);
+  const me=b.rows.find(r=>r.id===st.pid), head=`<div class="hd"><h3>${esc(c.eventName||'Hack-O-Ween')} standings</h3><div class="stage">${esc(H.stageText(eff))}</div></div>`;
+  box.hidden=false;
+  if(eff.reveal&&eff.reveal.on){ box.innerHTML=head+'<p class="note">🎃 The final standings are being revealed on the big screen. Look up!</p>'; return; }
+  const tiles=me?`<div class="tiles"><div style="--c:#FF8A1F">${esc(c.r1.name)}<b>${fm(me.r1.pts)}</b>of ${fm(c.r1.weight)}</div><div style="--c:#A98BFF">${esc(c.r2.name)}<b>${fm(me.r2.pts)}</b>of ${fm(c.r2.weight)}</div><div style="--c:#5CF2C0">${esc(c.bonus.name)}<b>${fm(me.bonus.pts)}</b>${c.bonus.cap>0?'up to '+fm(c.bonus.cap):'bonus'}</div></div>`:'';
+  box.innerHTML=head+(me
+    ? `<div class="me"><span class="rank">#${me.rank}</span><span class="sub" style="margin:0">of ${b.rows.length}</span><span class="tot">${fm(me.total)} points</span></div>${tiles}`
+    : `<p class="note">We can't find you in the ${esc(c.eventName||'Hack-O-Ween')} standings yet. If that looks wrong, tell the host your HackerRank username.</p>`)+
+    `<ol class="lb">${b.rows.slice(0,10).map(r=>`<li class="${r.id===st.pid?'me':''}"><span class="rk">${['🥇','🥈','🥉'][r.rank-1]||r.rank}</span><span class="nm">${esc(r.name)}${r.id===st.pid?' (you)':''}</span><b>${fm(r.total)}</b></li>`).join('')}</ol>`+
+    (me&&me.rank>10?`<p class="note">You're #${me.rank} with ${fm(me.total)} points.</p>`:'');
 }
 
 /* ---------- top 5 modal helpers (with histogram) ---------- */
